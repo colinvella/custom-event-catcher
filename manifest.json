@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "CustomEvent Catcher",
+  "version": "0.1.0",
+  "description": "Captures CustomEvent dispatches on pages and logs details.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": ["activeTab", "tabs", "clipboardWrite"],
+  "action": {
+    "default_title": "Open CustomEvent Catcher",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png"
+    }
+  },
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/contentScript.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],  
+  "devtools_page": "devtools.html",
+  "web_accessible_resources": [
+    {
+      "resources": ["panel.html", "dist/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+/* Styles for the Custom Events DevTools panel */
+/* Use inherited DevTools colors so the panel matches the surrounding UI (light/dark theme aware). */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 8px;
+  background: transparent;
+  color: inherit;
+}
+
+/* Toolbar */
+.toolbar { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.spacer { flex:1 }
+.label-muted { font-size:12px; opacity:0.8 }
+
+/* Buttons should blend with DevTools UI */
+button {
+  background: transparent;
+  color: inherit;
+  border: 1px solid rgba(128,128,128,0.12);
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+button:active { transform: translateY(1px); }
+
+/* Table container and table styles */
+.table-container { overflow:auto; max-height:calc(100vh - 80px); }
+#eventTable { width:100%; border-collapse:collapse; }
+#eventTable th, #eventTable td { text-align:left; padding:6px 8px; border-bottom:1px solid rgba(128,128,128,0.12); vertical-align:top }
+#eventTable th { font-weight:600 }
+
+.event-row { border-bottom:1px solid rgba(128,128,128,0.06) }
+.cell-detail pre { margin:0; white-space:pre-wrap; font-family: monospace; font-size: 12px; background: transparent; border: none; color: inherit }
+
+/* Preserve an event-item style (not currently used by table rows) */
+.event-item {
+  border: 1px solid rgba(128,128,128,0.12);
+  padding: 8px;
+  margin: 8px 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+}
+
+/* Small utility */
+.cell { }
+.cell-type { min-width:120px }
+.cell-time { min-width:160px }
+.cell-actions { 
+  white-space: nowrap;
+  min-width: 140px;
+}
+.cell-actions button {
+  margin: 0 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+.cell-actions button:first-child {
+  margin-left: 0;
+}

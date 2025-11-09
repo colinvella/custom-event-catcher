@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Custom Events</title>
+  <link rel="stylesheet" href="dist/panel.css">
+</head>
+<body>
+  <div class="toolbar">
+    <button id="clear">Clear</button>
+    <button id="export">Export</button>
+    <div class="spacer"></div>
+    <label class="label-muted">Showing recent events</label>
+  </div>
+
+  <div class="table-container">
+    <table id="eventTable">
+      <thead>
+        <tr>
+          <th class="col-time">Time</th>
+          <th class="col-type">Type</th>
+          <th class="col-detail">Detail</th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+  
+  <script src="dist/panel.js"></script>
+</body>
+</html>
