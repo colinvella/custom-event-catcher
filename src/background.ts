@@ -24,16 +24,23 @@ const eventBuffer: CustomEventPayload[] = [];
 const MAX_BUFFER = 500;
 
 // Update badge with event count for a specific tab
-function updateBadge(tabId?: number) {
+async function updateBadge(tabId?: number) {
 	if (!tabId) return;
 	
-	const count = eventBuffer.filter(e => e.tabId === tabId).length;
-	if (count > 0) {
-		chrome.action.setBadgeText({ tabId, text: count > 99 ? "99+" : count.toString() });
-		chrome.action.setBadgeBackgroundColor({ tabId, color: "#dc2626" }); // Red background
-		chrome.action.setBadgeTextColor({ tabId, color: "#ffffff" }); // White text
-	} else {
-		chrome.action.setBadgeText({ tabId, text: "" });
+	try {
+		// Verify the tab still exists
+		await chrome.tabs.get(tabId);
+		
+		const count = eventBuffer.filter(e => e.tabId === tabId).length;
+		if (count > 0) {
+			chrome.action.setBadgeText({ tabId, text: count > 99 ? "99+" : count.toString() });
+			chrome.action.setBadgeBackgroundColor({ tabId, color: "#dc2626" }); // Red background
+			chrome.action.setBadgeTextColor({ tabId, color: "#ffffff" }); // White text
+		} else {
+			chrome.action.setBadgeText({ tabId, text: "" });
+		}
+	} catch (err) {
+		// Tab no longer exists, silently ignore
 	}
 }
 

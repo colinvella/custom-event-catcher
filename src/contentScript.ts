@@ -3,7 +3,7 @@
 function injectScript() {
   try {
     const script = document.createElement('script');
-    script.src = chrome.runtime.getURL("dist/inject.js");
+    script.src = chrome.runtime.getURL("inject.js");
     script.type = "text/javascript";
     script.async = false;
     (document.head || document.documentElement).prepend(script);

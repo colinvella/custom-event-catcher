@@ -2,10 +2,13 @@
   "name": "custom-event-catcher",
   "version": "0.1.0",
   "description": "Chrome extension to capture CustomEvent dispatches and log them",
+  "author": "Colin Vella",
   "scripts": {
     "prebuild": "node ./scripts/clean.js",
     "build": "tsc -p tsconfig.json && node ./scripts/copy-assets.js",
-    "watch": "tsc -p tsconfig.json -w"
+    "watch": "tsc -p tsconfig.json -w",
+    "zip": "node ./scripts/zip.js",
+    "package": "npm run build && npm run zip"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.27",

@@ -22,7 +22,19 @@ function copy(srcRelative, destRelative) {
 
 try {
   ensureDir(dist);
+  copy('manifest.json', 'dist/manifest.json');
+  copy('devtools.html', 'dist/devtools.html');
+  copy('panel.html', 'dist/panel.html');
   copy('panel.css', 'dist/panel.css');
+  copy('popup.html', 'dist/popup.html');
+  
+  // Copy icons directory
+  const iconsDir = path.join(dist, 'icons');
+  ensureDir(iconsDir);
+  const iconFiles = fs.readdirSync(path.join(root, 'icons'));
+  iconFiles.forEach(file => {
+    copy(path.join('icons', file), path.join('dist', 'icons', file));
+  });
 } catch (err) {
   console.error('copy-assets failed', err);
   process.exit(1);
