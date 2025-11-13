@@ -11,22 +11,59 @@
   EventTarget.prototype.dispatchEvent = function (event: Event) {
     try {
       if (typeof CustomEvent !== "undefined" && event instanceof CustomEvent) {
+        // Capture stack trace to get the initiator
+        const stack = new Error().stack || "";
+        const stackLines = stack.split("\n");
+        // Skip first 3 lines (Error, this function, and the caller's dispatchEvent call)
+        // Find the first meaningful caller
+        let initiator = null;
+        for (let i = 3; i < stackLines.length; i++) {
+          const line = stackLines[i].trim();
+          // Extract location from stack line (format: "at functionName (file:line:col)")
+          const match = line.match(/\((.*):(\d+):(\d+)\)/) || line.match(/at (.*):(\d+):(\d+)/);
+          if (match) {
+            initiator = {
+              url: match[1],
+              line: parseInt(match[2], 10),
+              column: parseInt(match[3], 10)
+            };
+            break;
+          }
+        }
+        
         const payload = {
           type: event.type,
           detail: (event as CustomEvent).detail,
           time: Date.now(),
-          targetTag: (this && (this as Element).tagName) || null
+          targetTag: (this && (this as Element).tagName) || null,
+          initiator: initiator
         };
         // Log as a single grouped message so filtering keeps it together
-        console.info(
-          "%cCustom Event%c %s\n  Details: %o\n  Target: %s\n  Time: %s",
-          "color: #3ba55c; font-weight: bold",
-          "",
-          event.type,
-          payload.detail,
-          payload.targetTag || "window",
-          new Date(payload.time).toLocaleString()
-        );
+        // Include initiator link if available
+        if (initiator) {
+          console.info(
+            "%cCustom Event%c %s\n  Details: %o\n  Target: %s\n  Time: %s\n  Initiator: %s:%d:%d",
+            "color: #3ba55c; font-weight: bold",
+            "",
+            event.type,
+            payload.detail,
+            payload.targetTag || "window",
+            new Date(payload.time).toLocaleString(),
+            initiator.url,
+            initiator.line,
+            initiator.column
+          );
+        } else {
+          console.info(
+            "%cCustom Event%c %s\n  Details: %o\n  Target: %s\n  Time: %s",
+            "color: #3ba55c; font-weight: bold",
+            "",
+            event.type,
+            payload.detail,
+            payload.targetTag || "window",
+            new Date(payload.time).toLocaleString()
+          );
+        }
         // Post to content script
         window.postMessage({ __CEC_CUSTOM_EVENT: true, payload }, "*");
       }

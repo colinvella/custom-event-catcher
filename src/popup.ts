@@ -2,18 +2,37 @@
 
 const captureToggle = document.getElementById("captureToggle") as HTMLInputElement;
 
+// Function to update extension icon based on capture state
+function updateExtensionIcon(isEnabled: boolean) {
+	const iconSuffix = isEnabled ? "" : "-gray";
+	chrome.action.setIcon({
+		path: {
+			"16": `icons/icon-16${iconSuffix}.png`,
+			"32": `icons/icon-32${iconSuffix}.png`,
+			"48": `icons/icon-48${iconSuffix}.png`,
+			"64": `icons/icon-64${iconSuffix}.png`,
+			"128": `icons/icon-128${iconSuffix}.png`
+		}
+	});
+}
+
 // Load current capture state from storage
 chrome.storage.local.get(["captureEnabled"], (result) => {
-  const isEnabled = result.captureEnabled !== false; // default to true
-  if (captureToggle) {
-    captureToggle.checked = isEnabled;
-  }
+	const isEnabled = result.captureEnabled !== false; // default to true
+	if (captureToggle) {
+		captureToggle.checked = isEnabled;
+	}
+	updateExtensionIcon(isEnabled);
 });
 
 // Save capture state when toggled
 if (captureToggle) {
   captureToggle.addEventListener("change", () => {
     const isEnabled = captureToggle.checked;
+    
+    // Update the icon immediately
+    updateExtensionIcon(isEnabled);
+    
     chrome.storage.local.set({ captureEnabled: isEnabled }, () => {
       // Notify all tabs that capture state changed
       chrome.tabs.query({}, (tabs) => {

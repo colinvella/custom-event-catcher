@@ -8,6 +8,11 @@ interface CustomEventPayload {
 	targetTag: string | null;
 	tabId?: number;
 	tabUrl?: string;
+	initiator?: {
+		url: string;
+		line: number;
+		column: number;
+	} | null;
 }
 
 interface Sender {
@@ -23,6 +28,43 @@ interface CustomEventMessage {
 const eventBuffer: CustomEventPayload[] = [];
 const MAX_BUFFER = 500;
 
+// Function to update extension icon based on capture state
+function updateIcon(isEnabled: boolean) {
+	const iconSuffix = isEnabled ? "" : "-gray";
+	chrome.action.setIcon({
+		path: {
+			"16": `icons/icon-16${iconSuffix}.png`,
+			"32": `icons/icon-32${iconSuffix}.png`,
+			"48": `icons/icon-48${iconSuffix}.png`,
+			"64": `icons/icon-64${iconSuffix}.png`,
+			"128": `icons/icon-128${iconSuffix}.png`
+		}
+	});
+}
+
+// Initialize icon on startup
+chrome.storage.local.get(["captureEnabled"], (result) => {
+	const isEnabled = result.captureEnabled !== false; // default to true
+	updateIcon(isEnabled);
+});
+
+// Update icon when storage changes (e.g., from popup toggle)
+chrome.storage.onChanged.addListener((changes, areaName) => {
+	if (areaName === "local" && changes.captureEnabled) {
+		const isEnabled = changes.captureEnabled.newValue !== false;
+		updateIcon(isEnabled);
+		
+		// Update badges for all tabs with the new color
+		chrome.tabs.query({}, (tabs) => {
+			tabs.forEach(tab => {
+				if (tab.id) {
+					updateBadge(tab.id);
+				}
+			});
+		});
+	}
+});
+
 // Update badge with event count for a specific tab
 async function updateBadge(tabId?: number) {
 	if (!tabId) return;
@@ -31,11 +73,22 @@ async function updateBadge(tabId?: number) {
 		// Verify the tab still exists
 		await chrome.tabs.get(tabId);
 		
+		// Get capture state from storage
+		const result = await chrome.storage.local.get(["captureEnabled"]);
+		const isEnabled = result.captureEnabled !== false; // default to true
+		
 		const count = eventBuffer.filter(e => e.tabId === tabId).length;
 		if (count > 0) {
 			chrome.action.setBadgeText({ tabId, text: count > 99 ? "99+" : count.toString() });
-			chrome.action.setBadgeBackgroundColor({ tabId, color: "#dc2626" }); // Red background
-			chrome.action.setBadgeTextColor({ tabId, color: "#ffffff" }); // White text
+			
+			// Set badge color based on capture state
+			if (isEnabled) {
+				chrome.action.setBadgeBackgroundColor({ tabId, color: "#dc2626" }); // Red background
+				chrome.action.setBadgeTextColor({ tabId, color: "#ffffff" }); // White text
+			} else {
+				chrome.action.setBadgeBackgroundColor({ tabId, color: "#9ca3af" }); // Grey background
+				chrome.action.setBadgeTextColor({ tabId, color: "#ffffff" }); // White text
+			}
 		} else {
 			chrome.action.setBadgeText({ tabId, text: "" });
 		}

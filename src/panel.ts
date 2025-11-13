@@ -7,6 +7,11 @@ interface CustomEventPayload {
   targetTag: string | null;
   tabId?: number;
   tabUrl?: string;
+  initiator?: {
+    url: string;
+    line: number;
+    column: number;
+  } | null;
 }
 
 const list = document.getElementById('list') as HTMLTableSectionElement;
@@ -76,7 +81,34 @@ function renderEvent(e: CustomEventPayload) {
   pre.textContent = JSON.stringify(e.detail, null, 2);
   detailTd.appendChild(pre);
 
-  // Actions (fourth column)
+  // Initiator (fourth column)
+  const initiatorTd = document.createElement('td');
+  initiatorTd.className = 'cell cell-initiator';
+  if (e.initiator) {
+    const link = document.createElement('a');
+    const fileName = e.initiator.url.split('/').pop() || e.initiator.url;
+    link.textContent = `${fileName}:${e.initiator.line}`;
+    link.title = `${e.initiator.url}:${e.initiator.line}:${e.initiator.column}`;
+    link.href = '#';
+    link.addEventListener('click', (evt) => {
+      evt.preventDefault();
+      // Use DevTools API to open source file
+      if ((chrome as any).devtools && (chrome as any).devtools.panels) {
+        (chrome as any).devtools.panels.openResource(
+          e.initiator!.url,
+          e.initiator!.line - 1, // 0-indexed
+          () => {
+            // Opened successfully
+          }
+        );
+      }
+    });
+    initiatorTd.appendChild(link);
+  } else {
+    initiatorTd.textContent = '—';
+  }
+
+  // Actions (fifth column)
   const actionsTd = document.createElement('td');
   actionsTd.className = 'cell cell-actions';
 
@@ -132,6 +164,7 @@ function renderEvent(e: CustomEventPayload) {
   tr.appendChild(timeTd);
   tr.appendChild(typeTd);
   tr.appendChild(detailTd);
+  tr.appendChild(initiatorTd);
   tr.appendChild(actionsTd);
 
   list.appendChild(tr);
