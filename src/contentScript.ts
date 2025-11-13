@@ -1,4 +1,5 @@
 // Content script: injects the page script and listens for window messages
+import { MESSAGE, MessageType } from './types';
 
 let captureEnabled = true;
 
@@ -34,7 +35,7 @@ window.addEventListener("message", (event) => {
     const payload = data.payload;
     // Forward event to background (background will broadcast to DevTools panel)
     try {
-      chrome.runtime.sendMessage({ type: "cec_custom_event", payload }, () => {
+  chrome.runtime.sendMessage({ type: MESSAGE.CEC_CUSTOM_EVENT, payload }, () => {
         // swallow runtime.lastError when no listener exists
         if (chrome.runtime.lastError) {
           // no-op
@@ -47,13 +48,13 @@ window.addEventListener("message", (event) => {
 });
 
 // Listen for replay requests from the DevTools panel
-chrome.runtime.onMessage.addListener((message: any, sender, sendResponse) => {
-  if (message?.type === "set_capture_enabled") {
-    captureEnabled = message.enabled;
+chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any; enabled?: boolean }, sender, sendResponse) => {
+  if (message?.type === MESSAGE.SET_CAPTURE_ENABLED) {
+    captureEnabled = message.enabled !== false; // default to true when undefined
     return;
   }
   
-  if (message?.type === "replay_event") {
+  if (message?.type === MESSAGE.REPLAY_EVENT) {
     try {
       // Use window.postMessage to communicate with the injected script
       window.postMessage({
@@ -68,7 +69,7 @@ chrome.runtime.onMessage.addListener((message: any, sender, sendResponse) => {
     return true; // keep channel open for async response
   }
   
-  if (message?.type === "copy_to_clipboard") {
+  if (message?.type === MESSAGE.COPY_TO_CLIPBOARD) {
     try {
       // Use execCommand which works reliably in content scripts
       const textarea = document.createElement("textarea");

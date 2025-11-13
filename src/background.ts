@@ -1,5 +1,8 @@
-// Inlined CustomEventPayload to avoid making this file an ES module
-// (service worker scripts must not use module imports/exports in this build)
+// NOTE: This file intentionally avoids imports to remain a non-module service worker.
+// Message type constants are defined centrally in types.ts. To prevent converting this
+// script into an ES module (which may alter MV3 service worker behavior), we duplicate
+// the minimal string literals here. If module support is desired later, we can import
+// and remove these duplicates.
 // Inlined CustomEventPayload used by background
 interface CustomEventPayload {
 	type: string;
@@ -20,7 +23,7 @@ interface Sender {
 }
 
 interface CustomEventMessage {
-	type: string;
+	type: string; // Should be one of MESSAGE.CEC_CUSTOM_EVENT etc. (see types.ts)
 	payload: CustomEventPayload;
 }
 
@@ -53,7 +56,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 	if (areaName === "local" && changes.captureEnabled) {
 		const isEnabled = changes.captureEnabled.newValue !== false;
 		updateIcon(isEnabled);
-		
+
 		// Update badges for all tabs with the new color
 		chrome.tabs.query({}, (tabs) => {
 			tabs.forEach(tab => {
@@ -68,19 +71,19 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 // Update badge with event count for a specific tab
 async function updateBadge(tabId?: number) {
 	if (!tabId) return;
-	
+
 	try {
 		// Verify the tab still exists
 		await chrome.tabs.get(tabId);
-		
+
 		// Get capture state from storage
 		const result = await chrome.storage.local.get(["captureEnabled"]);
 		const isEnabled = result.captureEnabled !== false; // default to true
-		
+
 		const count = eventBuffer.filter(e => e.tabId === tabId).length;
 		if (count > 0) {
 			chrome.action.setBadgeText({ tabId, text: count > 99 ? "99+" : count.toString() });
-			
+
 			// Set badge color based on capture state
 			if (isEnabled) {
 				chrome.action.setBadgeBackgroundColor({ tabId, color: "#dc2626" }); // Red background
@@ -100,7 +103,7 @@ async function updateBadge(tabId?: number) {
 chrome.runtime.onMessage.addListener((message: CustomEventMessage, sender: Sender, sendResponse) => {
 	if (!message || !message.type) return;
 
-    if (message.type === "cec_custom_event") {
+	if (message.type === "cec_custom_event") {
 		const event = {
 			type: "custom-event",
 			payload: {
@@ -111,23 +114,23 @@ chrome.runtime.onMessage.addListener((message: CustomEventMessage, sender: Sende
 		};
 
 		// Broadcast to any listening panels (DevTools panel listens via chrome.runtime.onMessage)
-			// Use a callback to swallow the runtime.lastError when there are no listeners
-			try {
-		// Buffer the event for later panels
-		eventBuffer.push(event.payload);
-		if (eventBuffer.length > MAX_BUFFER) eventBuffer.splice(0, eventBuffer.length - MAX_BUFFER);
+		// Use a callback to swallow the runtime.lastError when there are no listeners
+		try {
+			// Buffer the event for later panels
+			eventBuffer.push(event.payload);
+			if (eventBuffer.length > MAX_BUFFER) eventBuffer.splice(0, eventBuffer.length - MAX_BUFFER);
 
-		// Update badge count for this tab
-		updateBadge(sender.tab?.id);			chrome.runtime.sendMessage(event, () => {
-					// If no one handled the message, chrome sets runtime.lastError.
-					// We intentionally ignore that to avoid noisy console errors.
-					if (chrome.runtime.lastError) {
-						// no-op
-					}
-				});
-			} catch (err) {
-				// ignore synchronous errors (shouldn't happen)
-			}
+			// Update badge count for this tab
+			updateBadge(sender.tab?.id); chrome.runtime.sendMessage(event, () => {
+				// If no one handled the message, chrome sets runtime.lastError.
+				// We intentionally ignore that to avoid noisy console errors.
+				if (chrome.runtime.lastError) {
+					// no-op
+				}
+			});
+		} catch (err) {
+			// ignore synchronous errors (shouldn't happen)
+		}
 
 		// Also log centrally in the service worker console
 		console.log('[custom-event-catcher background] event', event.payload);

@@ -1,4 +1,5 @@
 // Popup script: displays event count from background and toggles capture state
+import { MESSAGE } from './types';
 
 const captureToggle = document.getElementById("captureToggle") as HTMLInputElement;
 
@@ -39,7 +40,7 @@ if (captureToggle) {
         tabs.forEach(tab => {
           if (tab.id) {
             chrome.tabs.sendMessage(tab.id, { 
-              type: "set_capture_enabled", 
+              type: MESSAGE.SET_CAPTURE_ENABLED, 
               enabled: isEnabled 
             }, () => {
               // Ignore errors for tabs without content script
@@ -55,7 +56,7 @@ if (captureToggle) {
 }
 
 // Get the current event count from background
-chrome.runtime.sendMessage({ type: "get_event_count" }, (response) => {
+chrome.runtime.sendMessage({ type: MESSAGE.GET_EVENT_COUNT }, (response) => {
   if (response?.count !== undefined) {
     const countEl = document.getElementById("eventCount");
     if (countEl) {

@@ -1,18 +1,8 @@
 // Panel script: runs inside the DevTools panel (panel.html). Listens for messages from the background.
+import { MESSAGE, MessageType, CustomEventPayload as SharedCustomEventPayload } from './types';
 
-interface CustomEventPayload {
-  type: string;
-  detail: any;
-  time: number;
-  targetTag: string | null;
-  tabId?: number;
-  tabUrl?: string;
-  initiator?: {
-    url: string;
-    line: number;
-    column: number;
-  } | null;
-}
+// Mirror payload type locally (imported for consistency)
+type CustomEventPayload = SharedCustomEventPayload;
 
 const list = document.getElementById('list') as HTMLTableSectionElement;
 const clearBtn = document.getElementById('clear') as HTMLButtonElement;
@@ -120,7 +110,7 @@ function renderEvent(e: CustomEventPayload) {
   replayBtn.addEventListener('click', () => {
     // Send message to content script to replay the event
     chrome.tabs.sendMessage(inspectedTabId!, {
-      type: 'replay_event',
+      type: MESSAGE.REPLAY_EVENT,
       payload: { type: e.type, detail: e.detail }
     }, () => {
       if (chrome.runtime.lastError) {
@@ -141,7 +131,7 @@ function renderEvent(e: CustomEventPayload) {
     
     // Send to content script which has proper clipboard access
     chrome.tabs.sendMessage(inspectedTabId!, {
-      type: 'copy_to_clipboard',
+      type: MESSAGE.COPY_TO_CLIPBOARD,
       payload: command
     }, (response) => {
       if (chrome.runtime.lastError) {
@@ -252,8 +242,8 @@ filterDetailInput.addEventListener('input', () => {
 updateExportFilteredButton();
 
 // Listen for messages from background (and other extension parts)
-chrome.runtime.onMessage.addListener((message: any) => {
-  if (message?.type === "custom-event" && message.payload) {
+chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any }) => {
+  if (message?.type === MESSAGE.CUSTOM_EVENT && message.payload) {
     addEvent(message.payload as CustomEventPayload);
   }
 });
@@ -262,7 +252,7 @@ chrome.runtime.onMessage.addListener((message: any) => {
 // Request backlog from background when panel opens so we can display events that occurred while the panel was closed
 console.log("Custom Events panel initialized - requesting backlog");
 try {
-  chrome.runtime.sendMessage({ type: "panel_ready" }, () => {
+  chrome.runtime.sendMessage({ type: MESSAGE.PANEL_READY }, () => {
     if (chrome.runtime.lastError) {
       // no-op
     }
@@ -272,8 +262,8 @@ try {
 }
 
 // Handle backlog message
-chrome.runtime.onMessage.addListener((message: any) => {
-  if (message?.type === "backlog" && Array.isArray(message.payload)) {
+chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any }) => {
+  if (message?.type === MESSAGE.BACKLOG && Array.isArray(message.payload)) {
     (message.payload as CustomEventPayload[]).forEach(e => addEvent(e));
   }
 });
