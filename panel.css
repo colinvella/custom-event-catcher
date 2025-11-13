@@ -18,6 +18,12 @@ body {
   padding: 3px 8px;
   border-radius: 3px;
   margin-right: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s;
+}
+.capture-status:hover {
+  opacity: 0.8;
 }
 .capture-status.enabled {
   background: rgba(59, 165, 92, 0.15);
@@ -80,7 +86,6 @@ button:disabled {
 }
 
 /* Small utility */
-.cell { }
 .cell-type { min-width:120px }
 .cell-time { min-width:160px }
 .cell-initiator { 

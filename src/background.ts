@@ -141,6 +141,20 @@ chrome.runtime.onMessage.addListener((message: CustomEventMessage, sender: Sende
 		sendResponse({ count: eventBuffer.length });
 		return true;
 	}
+
+	// Panel requests clearing events
+	if (message.type === MessageType.CLEAR_EVENTS) {
+		eventBuffer.length = 0; // Clear the buffer
+		// Update badge for all tabs to reflect cleared state
+		chrome.tabs.query({}, (tabs) => {
+			tabs.forEach((tab) => {
+				if (tab.id) {
+					updateBadge(tab.id);
+				}
+			});
+		});
+		return;
+	}
 });
 
 // Update badge when switching tabs

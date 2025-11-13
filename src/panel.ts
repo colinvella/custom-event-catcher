@@ -32,6 +32,38 @@ function updateCaptureStatus() {
   });
 }
 
+// Toggle capture state when status is clicked
+function toggleCaptureState() {
+  chrome.storage.local.get(["captureEnabled"], (result) => {
+    const currentState = result.captureEnabled !== false;
+    const newState = !currentState;
+    chrome.storage.local.set({ captureEnabled: newState }, () => {
+      updateCaptureStatus();
+      // Broadcast to content scripts
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach((tab) => {
+          if (tab.id) {
+            chrome.tabs.sendMessage(tab.id, {
+              type: MessageType.SET_CAPTURE_ENABLED,
+              enabled: newState
+            }, () => {
+              if (chrome.runtime.lastError) {
+                // Ignore errors for tabs without content script
+              }
+            });
+          }
+        });
+      });
+    });
+  });
+}
+
+// Make status clickable
+if (captureStatus) {
+  captureStatus.addEventListener('click', toggleCaptureState);
+  captureStatus.title = "Click to toggle capture state";
+}
+
 // Update status on load
 updateCaptureStatus();
 
@@ -208,6 +240,12 @@ function addEvent(e: CustomEventPayload) {
 clearBtn.addEventListener('click', () => {
   events = [];
   list.innerHTML = '';
+  // Notify background to clear buffer and reset badge
+  chrome.runtime.sendMessage({ type: MessageType.CLEAR_EVENTS }, () => {
+    if (chrome.runtime.lastError) {
+      // no-op
+    }
+  });
 });
 
 exportBtn.addEventListener('click', () => {

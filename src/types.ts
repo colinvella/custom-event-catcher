@@ -24,7 +24,8 @@ export const enum MessageType {
     BACKLOG = "backlog",                         // Background -> panel sending stored events
     REPLAY_EVENT = "replay_event",               // Panel -> content script to redispatch
     COPY_TO_CLIPBOARD = "copy_to_clipboard",     // Panel -> content script to copy helper code
-    SET_CAPTURE_ENABLED = "set_capture_enabled"  // Popup -> content scripts to toggle capture
+    SET_CAPTURE_ENABLED = "set_capture_enabled", // Popup -> content scripts to toggle capture
+    CLEAR_EVENTS = "clear_events"                // Panel -> background to clear buffer and reset badge
 }
 
 export interface RuntimeMessage<T extends MessageType = MessageType, P = any> {

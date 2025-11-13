@@ -7,15 +7,16 @@ Chrome extension (TypeScript) that captures CustomEvent dispatches on pages and 
 - **DevTools Panel** - Dedicated panel showing all CustomEvents in real-time with filtering capabilities
 - **Initiator Tracking** - Click links to jump to the exact source code location that dispatched each event (with full source map support)
 - **Event Filtering** - Filter events by Type or Detail with case-insensitive substring matching
-- **Capture Control** - Toggle switch to pause/resume event capturing with visual feedback
+- **Capture Control** - Toggle switch in popup OR click the status badge in the panel to pause/resume event capturing
 - **Visual Status Indicators**:
   - Extension icon changes to grayscale when capturing is paused
   - Badge counter turns grey when capturing is disabled
-  - Panel shows capture status ("● Capturing" or "○ Paused")
-- **Per-Tab Badge Counter** - Shows number of captured events for the active tab
+  - Panel shows clickable capture status ("● Capturing" or "○ Paused")
+- **Per-Tab Badge Counter** - Shows number of captured events for the active tab; resets when panel is cleared
 - **Event Actions**:
   - **Replay (↻)** - Dispatch the event again in the page context
   - **Copy (⎘)** - Copy a ready-to-paste `window.dispatchEvent()` command to clipboard
+  - **Clear** - Clear all events from panel and reset badge counter
 - **Export Options**:
   - Export All - Download all captured events as JSON
   - Export Filtered - Download only events matching current filters
@@ -51,15 +52,14 @@ npm run build
 
 ### Bundling & Content Script Architecture
 
-MV3 content scripts are still loaded as classic scripts (no native `type="module"` support). To avoid duplicating shared constants (like `MESSAGE`) we author `src/contentScript.ts` using normal ES module imports and then bundle it with **esbuild** into a single IIFE (`dist/contentScript.js`). During bundling all imports are inlined so the shipped content script contains no `import` statements and remains MV3-compatible.
+MV3 content scripts are still loaded as classic scripts (no native `type="module"` support). To avoid duplicating shared constants we author `src/content-script.ts` using normal ES module imports and then bundle it with **esbuild** into a single IIFE (`dist/content-script.js`). During bundling all imports are inlined so the shipped content script contains no `import` statements and remains MV3-compatible.
 
 Key points:
-- Source of truth for messaging constants lives in `src/types.ts`.
-- Bundling step: `npm run bundle:content` (automatically included in `npm run build`).
-- Output: `dist/contentScript.js` (with source map for easier debugging).
-- If Chrome adds module support for content scripts in future, the bundling step can be removed and the manifest updated accordingly.
-
-If you add more shared utilities needed by the content script, you can simply import them in `contentScript.ts` and the bundler will inline them—no manual duplication required.
+- Source of truth for messaging constants lives in `src/types.ts` as a `const enum`.
+- Build split into `bundle:esm` (for background/panel/popup/devtools) and `bundle:iife` (for content-script and inject scripts).
+- Output: `dist/content-script.js` and `dist/inject.js` (with source maps for easier debugging).
+- TypeScript runs type-check only (`noEmit`); all bundling handled by esbuild for speed and tree-shaking.
+- If Chrome adds module support for content scripts in future, the bundling step can be simplified.
 
 ## Testing
 
@@ -80,12 +80,13 @@ You should see:
 ## Usage Guide
 
 ### Capture Control
-- Click the extension icon in the toolbar to open the popup
-- Use the toggle switch to enable/disable event capturing
+- Click the extension icon in the toolbar to open the popup and use the toggle switch
+- OR click the capture status badge directly in the DevTools panel ("● Capturing" / "○ Paused")
 - When paused:
   - Extension icon turns grayscale
   - Badge counter turns grey
   - Panel shows "○ Paused" status
+- Status syncs across popup and panel automatically
 
 ### Filtering Events
 - Enter text in the **Type** or **Detail** filter boxes at the top of the table
@@ -96,6 +97,7 @@ You should see:
 - **Click initiator link** - Opens the source file at the exact line in DevTools
 - **Click ↻** - Replays the event in the page context
 - **Click ⎘** - Copies the dispatch command to clipboard
+- **Click Clear** - Clears all events from the panel and resets the badge counter to 0
 
 ### Exporting Data
 - **Export All** - Downloads all captured events as JSON
@@ -164,10 +166,12 @@ Marquee (1400×560, optional):
 - **Dedicated DevTools panel** for real-time CustomEvent monitoring
 - **Initiator tracking** with clickable source links (supports source maps)
 - **Live filtering** by event type or detail with substring matching
-- **Capture control** - pause/resume with visual status indicators
-- **Per-tab badge counter** showing event volume in real time
+- **Capture control** - pause/resume via popup toggle or panel status click
+- **Clickable status badge** - toggle capture state directly from the DevTools panel
+- **Per-tab badge counter** showing event volume; resets on clear
 - **Replay events** instantly to reproduce behaviors
 - **One-click copy** of ready-to-run dispatch commands
+- **Clear button** - clears panel and resets badge counter
 - **Export options** - download all or filtered events as JSON
 - **Console integration** - events logged with initiator links
 - **Zero data collection** - completely privacy friendly
