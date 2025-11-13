@@ -1,5 +1,5 @@
 // Panel script: runs inside the DevTools panel (panel.html). Listens for messages from the background.
-import { MESSAGE, MessageType, CustomEventPayload as SharedCustomEventPayload } from './types';
+import { MessageType, CustomEventPayload as SharedCustomEventPayload } from './types';
 
 // Mirror payload type locally (imported for consistency)
 type CustomEventPayload = SharedCustomEventPayload;
@@ -110,7 +110,7 @@ function renderEvent(e: CustomEventPayload) {
   replayBtn.addEventListener('click', () => {
     // Send message to content script to replay the event
     chrome.tabs.sendMessage(inspectedTabId!, {
-      type: MESSAGE.REPLAY_EVENT,
+      type: MessageType.REPLAY_EVENT,
       payload: { type: e.type, detail: e.detail }
     }, () => {
       if (chrome.runtime.lastError) {
@@ -131,7 +131,7 @@ function renderEvent(e: CustomEventPayload) {
     
     // Send to content script which has proper clipboard access
     chrome.tabs.sendMessage(inspectedTabId!, {
-      type: MESSAGE.COPY_TO_CLIPBOARD,
+      type: MessageType.COPY_TO_CLIPBOARD,
       payload: command
     }, (response) => {
       if (chrome.runtime.lastError) {
@@ -243,7 +243,7 @@ updateExportFilteredButton();
 
 // Listen for messages from background (and other extension parts)
 chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any }) => {
-  if (message?.type === MESSAGE.CUSTOM_EVENT && message.payload) {
+  if (message?.type === MessageType.CUSTOM_EVENT && message.payload) {
     addEvent(message.payload as CustomEventPayload);
   }
 });
@@ -252,7 +252,7 @@ chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: an
 // Request backlog from background when panel opens so we can display events that occurred while the panel was closed
 console.log("Custom Events panel initialized - requesting backlog");
 try {
-  chrome.runtime.sendMessage({ type: MESSAGE.PANEL_READY }, () => {
+  chrome.runtime.sendMessage({ type: MessageType.PANEL_READY }, () => {
     if (chrome.runtime.lastError) {
       // no-op
     }
@@ -263,7 +263,7 @@ try {
 
 // Handle backlog message
 chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any }) => {
-  if (message?.type === MESSAGE.BACKLOG && Array.isArray(message.payload)) {
+  if (message?.type === MessageType.BACKLOG && Array.isArray(message.payload)) {
     (message.payload as CustomEventPayload[]).forEach(e => addEvent(e));
   }
 });

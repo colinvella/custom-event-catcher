@@ -27,6 +27,7 @@ try {
   copy('panel.html', 'dist/panel.html');
   copy('panel.css', 'dist/panel.css');
   copy('popup.html', 'dist/popup.html');
+  // inject.js now produced by esbuild; no copy needed, but keep placeholder comment.
   
   // Copy icons directory
   const iconsDir = path.join(dist, 'icons');

@@ -1,8 +1,7 @@
 // Content script: injects the page script and listens for window messages
-// Bundling approach: We author this file using ES module imports for shared constants/types.
-// At build time esbuild bundles `src/contentScript.ts` into a single classic script (`dist/contentScript.js`)
-// with all imports inlined, since MV3 content scripts cannot be loaded as modules.
-// This keeps a single source of truth for MESSAGE while producing a runtime-compatible artifact.
+// Bundling approach: Authored as an ES module; esbuild bundles `src/content-script.ts` into
+// a single classic script (`dist/content-script.js`) because MV3 content scripts cannot be modules.
+// This preserves a single source of truth for shared constants/types while keeping runtime compatibility.
 import { MessageType } from "./types";
 
 let captureEnabled = true;
@@ -35,12 +34,10 @@ window.addEventListener("message", (event) => {
   if (data && data.__CEC_CUSTOM_EVENT) {
     // Check if capture is enabled before forwarding
     if (!captureEnabled) return;
-    
     const payload = data.payload;
     // Forward event to background (background will broadcast to DevTools panel)
     try {
-    chrome.runtime.sendMessage({ type: MessageType.CEC_CUSTOM_EVENT, payload }, () => {
-        // swallow runtime.lastError when no listener exists
+      chrome.runtime.sendMessage({ type: MessageType.CEC_CUSTOM_EVENT, payload }, () => {
         if (chrome.runtime.lastError) {
           // no-op
         }
@@ -51,20 +48,16 @@ window.addEventListener("message", (event) => {
   }
 });
 
-// Listen for replay requests from the DevTools panel
+// Listen for replay and copy requests from the DevTools panel
 chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any; enabled?: boolean }, sender, sendResponse) => {
   if (message?.type === MessageType.SET_CAPTURE_ENABLED) {
     captureEnabled = message.enabled !== false; // default to true when undefined
     return;
   }
-  
+
   if (message?.type === MessageType.REPLAY_EVENT) {
     try {
-      // Use window.postMessage to communicate with the injected script
-      window.postMessage({
-        __CEC_REPLAY_EVENT: true,
-        payload: message.payload
-      }, "*");
+      window.postMessage({ __CEC_REPLAY_EVENT: true, payload: message.payload }, "*");
       sendResponse({ success: true });
     } catch (err) {
       console.error("Replay failed:", err);
@@ -72,10 +65,9 @@ chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: an
     }
     return true; // keep channel open for async response
   }
-  
+
   if (message?.type === MessageType.COPY_TO_CLIPBOARD) {
     try {
-      // Use execCommand which works reliably in content scripts
       const textarea = document.createElement("textarea");
       textarea.value = message.payload;
       textarea.style.position = "fixed";

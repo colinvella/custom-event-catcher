@@ -1,31 +1,16 @@
-// NOTE: This file intentionally avoids imports to remain a non-module service worker.
-// Message type constants are defined centrally in types.ts. To prevent converting this
-// script into an ES module (which may alter MV3 service worker behavior), we duplicate
-// the minimal string literals here. If module support is desired later, we can import
-// and remove these duplicates.
-// Inlined CustomEventPayload used by background
-interface CustomEventPayload {
-	type: string;
-	detail: any;
-	time: number;
-	targetTag: string | null;
-	tabId?: number;
-	tabUrl?: string;
-	initiator?: {
-		url: string;
-		line: number;
-		column: number;
-	} | null;
-}
+// MV3 service worker now uses ESM (see manifest type: module). We can import shared types/constants.
+import { MessageType, CustomEventPayload } from './types';
 
 interface Sender {
 	tab?: { id?: number; url?: string };
 }
 
 interface CustomEventMessage {
-	type: string; // Should be one of MESSAGE.CEC_CUSTOM_EVENT etc. (see types.ts)
+	type: MessageType.CEC_CUSTOM_EVENT;
 	payload: CustomEventPayload;
 }
+
+// MESSAGE constants imported from shared types.
 
 // Background: receive events from content scripts and broadcast to panels
 const eventBuffer: CustomEventPayload[] = [];
@@ -103,9 +88,9 @@ async function updateBadge(tabId?: number) {
 chrome.runtime.onMessage.addListener((message: CustomEventMessage, sender: Sender, sendResponse) => {
 	if (!message || !message.type) return;
 
-	if (message.type === "cec_custom_event") {
+	if (message.type === MessageType.CEC_CUSTOM_EVENT) {
 		const event = {
-			type: "custom-event",
+			type: MessageType.CUSTOM_EVENT,
 			payload: {
 				...message.payload,
 				tabId: sender.tab?.id,
@@ -138,9 +123,9 @@ chrome.runtime.onMessage.addListener((message: CustomEventMessage, sender: Sende
 	}
 
 	// Panel signals it's ready and wants backlog
-	if (message.type === "panel_ready") {
+	if (message.type === MessageType.PANEL_READY) {
 		try {
-			chrome.runtime.sendMessage({ type: "backlog", payload: eventBuffer.slice() }, () => {
+			chrome.runtime.sendMessage({ type: MessageType.BACKLOG, payload: eventBuffer.slice() }, () => {
 				if (chrome.runtime.lastError) {
 					// no-op
 				}
@@ -152,7 +137,7 @@ chrome.runtime.onMessage.addListener((message: CustomEventMessage, sender: Sende
 	}
 
 	// Popup requests event count
-	if (message.type === "get_event_count") {
+	if (message.type === MessageType.GET_EVENT_COUNT) {
 		sendResponse({ count: eventBuffer.length });
 		return true;
 	}

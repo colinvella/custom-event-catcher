@@ -49,6 +49,18 @@ npm run build
 - Turn on **Developer mode**
 - Click **Load unpacked** and select the `dist/` folder (not the project root)
 
+### Bundling & Content Script Architecture
+
+MV3 content scripts are still loaded as classic scripts (no native `type="module"` support). To avoid duplicating shared constants (like `MESSAGE`) we author `src/contentScript.ts` using normal ES module imports and then bundle it with **esbuild** into a single IIFE (`dist/contentScript.js`). During bundling all imports are inlined so the shipped content script contains no `import` statements and remains MV3-compatible.
+
+Key points:
+- Source of truth for messaging constants lives in `src/types.ts`.
+- Bundling step: `npm run bundle:content` (automatically included in `npm run build`).
+- Output: `dist/contentScript.js` (with source map for easier debugging).
+- If Chrome adds module support for content scripts in future, the bundling step can be removed and the manifest updated accordingly.
+
+If you add more shared utilities needed by the content script, you can simply import them in `contentScript.ts` and the bundler will inline them—no manual duplication required.
+
 ## Testing
 
 1. Open DevTools for any page (e.g., example.com)
