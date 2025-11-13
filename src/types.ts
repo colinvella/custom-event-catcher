@@ -17,15 +17,15 @@ export interface CustomEventPayload {
 // Using a const enum eliminates the runtime object while retaining string literal types.
 // esbuild supports const enum inlining; tsc (type-check only with noEmit) validates usage.
 export const enum MessageType {
-    CEC_CUSTOM_EVENT = "cec_custom_event",       // Content script -> background
-    CUSTOM_EVENT = "custom-event",               // Background -> panel broadcast wrapper
-    PANEL_READY = "panel_ready",                 // Panel -> background requesting backlog
-    GET_EVENT_COUNT = "get_event_count",         // Popup -> background asking for buffer size
-    BACKLOG = "backlog",                         // Background -> panel sending stored events
-    REPLAY_EVENT = "replay_event",               // Panel -> content script to redispatch
-    COPY_TO_CLIPBOARD = "copy_to_clipboard",     // Panel -> content script to copy helper code
-    SET_CAPTURE_ENABLED = "set_capture_enabled", // Popup -> content scripts to toggle capture
-    CLEAR_EVENTS = "clear_events"                // Panel -> background to clear buffer and reset badge
+    TRACK_EVENT = "cec-track-event",                 // Content script -> background to track new event
+    SHOW_EVENT = "cec-show-event",                   // Background -> panel add new event
+    BACKLOG_REQUEST = "cec-backlog-request",         // Panel -> background requesting events backlog
+    BACKLOG_RESPONSE = "cec-backlog-response",       // Background -> panel sending events backglog
+    COUNT_REQUEST = "cec-count-request",             // Popup -> background asking for buffer size
+    REPLAY_CUSTOM_EVENT = "cec-replay-custom-event", // Panel -> content script to redispatch
+    COPY_TO_CLIPBOARD = "cec-copy-to-clipboard",     // Panel -> content script to copy helper code
+    CAPTURE_TOGGLE = "cec-capture-toggle",           // Popup -> content script to toggle capture
+    CLEAR_CUSTOM_EVENTS = "cec-clear-events"         // Panel -> background to clear buffer and reset badge
 }
 
 export interface RuntimeMessage<T extends MessageType = MessageType, P = any> {
@@ -33,5 +33,5 @@ export interface RuntimeMessage<T extends MessageType = MessageType, P = any> {
     payload?: P;
 }
 
-export interface BacklogMessage extends RuntimeMessage<MessageType.BACKLOG, CustomEventPayload[]> {}
-export interface CustomEventForwardMessage extends RuntimeMessage<MessageType.CUSTOM_EVENT, CustomEventPayload> {}
+export interface BacklogMessage extends RuntimeMessage<MessageType.BACKLOG_RESPONSE, CustomEventPayload[]> {}
+export interface CustomEventForwardMessage extends RuntimeMessage<MessageType.SHOW_EVENT, CustomEventPayload> {}

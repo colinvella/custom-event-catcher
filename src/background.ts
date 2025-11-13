@@ -6,7 +6,7 @@ interface Sender {
 }
 
 interface CustomEventMessage {
-	type: MessageType.CEC_CUSTOM_EVENT;
+	type: MessageType.TRACK_EVENT;
 	payload: CustomEventPayload;
 }
 
@@ -88,9 +88,9 @@ async function updateBadge(tabId?: number) {
 chrome.runtime.onMessage.addListener((message: CustomEventMessage, sender: Sender, sendResponse) => {
 	if (!message || !message.type) return;
 
-	if (message.type === MessageType.CEC_CUSTOM_EVENT) {
+	if (message.type === MessageType.TRACK_EVENT) {
 		const event = {
-			type: MessageType.CUSTOM_EVENT,
+			type: MessageType.SHOW_EVENT,
 			payload: {
 				...message.payload,
 				tabId: sender.tab?.id,
@@ -123,9 +123,9 @@ chrome.runtime.onMessage.addListener((message: CustomEventMessage, sender: Sende
 	}
 
 	// Panel signals it's ready and wants backlog
-	if (message.type === MessageType.PANEL_READY) {
+	if (message.type === MessageType.BACKLOG_REQUEST) {
 		try {
-			chrome.runtime.sendMessage({ type: MessageType.BACKLOG, payload: eventBuffer.slice() }, () => {
+			chrome.runtime.sendMessage({ type: MessageType.BACKLOG_RESPONSE, payload: eventBuffer.slice() }, () => {
 				if (chrome.runtime.lastError) {
 					// no-op
 				}
@@ -137,13 +137,13 @@ chrome.runtime.onMessage.addListener((message: CustomEventMessage, sender: Sende
 	}
 
 	// Popup requests event count
-	if (message.type === MessageType.GET_EVENT_COUNT) {
+	if (message.type === MessageType.COUNT_REQUEST) {
 		sendResponse({ count: eventBuffer.length });
 		return true;
 	}
 
 	// Panel requests clearing events
-	if (message.type === MessageType.CLEAR_EVENTS) {
+	if (message.type === MessageType.CLEAR_CUSTOM_EVENTS) {
 		eventBuffer.length = 0; // Clear the buffer
 		// Update badge for all tabs to reflect cleared state
 		chrome.tabs.query({}, (tabs) => {

@@ -37,7 +37,7 @@ window.addEventListener("message", (event) => {
     const payload = data.payload;
     // Forward event to background (background will broadcast to DevTools panel)
     try {
-      chrome.runtime.sendMessage({ type: MessageType.CEC_CUSTOM_EVENT, payload }, () => {
+      chrome.runtime.sendMessage({ type: MessageType.TRACK_EVENT, payload }, () => {
         if (chrome.runtime.lastError) {
           // no-op
         }
@@ -50,12 +50,12 @@ window.addEventListener("message", (event) => {
 
 // Listen for replay and copy requests from the DevTools panel
 chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any; enabled?: boolean }, sender, sendResponse) => {
-  if (message?.type === MessageType.SET_CAPTURE_ENABLED) {
+  if (message?.type === MessageType.CAPTURE_TOGGLE) {
     captureEnabled = message.enabled !== false; // default to true when undefined
     return;
   }
 
-  if (message?.type === MessageType.REPLAY_EVENT) {
+  if (message?.type === MessageType.REPLAY_CUSTOM_EVENT) {
     try {
       window.postMessage({ __CEC_REPLAY_EVENT: true, payload: message.payload }, "*");
       sendResponse({ success: true });

@@ -44,7 +44,7 @@ function toggleCaptureState() {
         tabs.forEach((tab) => {
           if (tab.id) {
             chrome.tabs.sendMessage(tab.id, {
-              type: MessageType.SET_CAPTURE_ENABLED,
+              type: MessageType.CAPTURE_TOGGLE,
               enabled: newState
             }, () => {
               if (chrome.runtime.lastError) {
@@ -142,7 +142,7 @@ function renderEvent(e: CustomEventPayload) {
   replayBtn.addEventListener('click', () => {
     // Send message to content script to replay the event
     chrome.tabs.sendMessage(inspectedTabId!, {
-      type: MessageType.REPLAY_EVENT,
+      type: MessageType.REPLAY_CUSTOM_EVENT,
       payload: { type: e.type, detail: e.detail }
     }, () => {
       if (chrome.runtime.lastError) {
@@ -241,7 +241,7 @@ clearBtn.addEventListener('click', () => {
   events = [];
   list.innerHTML = '';
   // Notify background to clear buffer and reset badge
-  chrome.runtime.sendMessage({ type: MessageType.CLEAR_EVENTS }, () => {
+  chrome.runtime.sendMessage({ type: MessageType.CLEAR_CUSTOM_EVENTS }, () => {
     if (chrome.runtime.lastError) {
       // no-op
     }
@@ -281,7 +281,7 @@ updateExportFilteredButton();
 
 // Listen for messages from background (and other extension parts)
 chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any }) => {
-  if (message?.type === MessageType.CUSTOM_EVENT && message.payload) {
+  if (message?.type === MessageType.SHOW_EVENT && message.payload) {
     addEvent(message.payload as CustomEventPayload);
   }
 });
@@ -290,7 +290,7 @@ chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: an
 // Request backlog from background when panel opens so we can display events that occurred while the panel was closed
 console.log("Custom Events panel initialized - requesting backlog");
 try {
-  chrome.runtime.sendMessage({ type: MessageType.PANEL_READY }, () => {
+  chrome.runtime.sendMessage({ type: MessageType.BACKLOG_REQUEST }, () => {
     if (chrome.runtime.lastError) {
       // no-op
     }
@@ -301,7 +301,7 @@ try {
 
 // Handle backlog message
 chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any }) => {
-  if (message?.type === MessageType.BACKLOG && Array.isArray(message.payload)) {
+  if (message?.type === MessageType.BACKLOG_RESPONSE && Array.isArray(message.payload)) {
     (message.payload as CustomEventPayload[]).forEach(e => addEvent(e));
   }
 });
