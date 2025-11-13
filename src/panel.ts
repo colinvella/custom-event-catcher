@@ -12,8 +12,40 @@ interface CustomEventPayload {
 const list = document.getElementById('list') as HTMLTableSectionElement;
 const clearBtn = document.getElementById('clear') as HTMLButtonElement;
 const exportBtn = document.getElementById('export') as HTMLButtonElement;
+const exportFilteredBtn = document.getElementById('exportFiltered') as HTMLButtonElement;
+const filterTypeInput = document.getElementById('filterType') as HTMLInputElement;
+const filterDetailInput = document.getElementById('filterDetail') as HTMLInputElement;
+const captureStatus = document.getElementById('captureStatus') as HTMLSpanElement;
 
 let events: CustomEventPayload[] = [];
+let filterType = '';
+let filterDetail = '';
+
+// Load and display capture status
+function updateCaptureStatus() {
+  chrome.storage.local.get(["captureEnabled"], (result) => {
+    const isEnabled = result.captureEnabled !== false; // default to true
+    if (captureStatus) {
+      if (isEnabled) {
+        captureStatus.textContent = "● Capturing";
+        captureStatus.className = "capture-status enabled";
+      } else {
+        captureStatus.textContent = "○ Paused";
+        captureStatus.className = "capture-status disabled";
+      }
+    }
+  });
+}
+
+// Update status on load
+updateCaptureStatus();
+
+// Listen for storage changes
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes.captureEnabled) {
+    updateCaptureStatus();
+  }
+});
 
 // Determine the inspected tab id for this panel so we can filter events to the current tab.
 // `chrome.devtools.inspectedWindow.tabId` is available in the DevTools panel context.
@@ -49,8 +81,9 @@ function renderEvent(e: CustomEventPayload) {
   actionsTd.className = 'cell cell-actions';
 
   // Replay button
-  const replayBtn = document.createElement('button');
-  replayBtn.textContent = 'Replay';
+  const replayBtn = document.createElement('span');
+  replayBtn.className = 'replay-icon';
+  replayBtn.textContent = '↻';
   replayBtn.title = 'Dispatch this event again in the inspected page';
   replayBtn.addEventListener('click', () => {
     // Send message to content script to replay the event
@@ -65,8 +98,9 @@ function renderEvent(e: CustomEventPayload) {
   });
 
   // Copy button
-  const copyBtn = document.createElement('button');
-  copyBtn.textContent = 'Copy';
+  const copyBtn = document.createElement('span');
+  copyBtn.className = 'copy-icon';
+  copyBtn.textContent = '⎘';
   copyBtn.title = 'Copy event dispatch command to clipboard';
   copyBtn.addEventListener('click', () => {
     // Generate a ready-to-paste dispatchEvent command
@@ -81,13 +115,13 @@ function renderEvent(e: CustomEventPayload) {
       if (chrome.runtime.lastError) {
         console.error('Copy failed:', chrome.runtime.lastError.message);
         copyBtn.textContent = '✗';
-        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1000);
+        setTimeout(() => { copyBtn.textContent = '⎘'; }, 1000);
       } else if (response?.success) {
         copyBtn.textContent = '✓';
-        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1000);
+        setTimeout(() => { copyBtn.textContent = '⎘'; }, 1000);
       } else {
         copyBtn.textContent = '✗';
-        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1000);
+        setTimeout(() => { copyBtn.textContent = '⎘'; }, 1000);
       }
     });
   });
@@ -103,6 +137,39 @@ function renderEvent(e: CustomEventPayload) {
   list.appendChild(tr);
 }
 
+function matchesFilter(e: CustomEventPayload): boolean {
+  // Check if type contains filterType substring (case-insensitive)
+  if (filterType && !e.type.toLowerCase().includes(filterType.toLowerCase())) {
+    return false;
+  }
+  
+  // Check if stringified detail contains filterDetail substring (case-insensitive)
+  if (filterDetail) {
+    const detailStr = JSON.stringify(e.detail);
+    if (!detailStr.toLowerCase().includes(filterDetail.toLowerCase())) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+function refreshDisplay() {
+  list.innerHTML = '';
+  events.forEach(e => {
+    if (matchesFilter(e)) {
+      renderEvent(e);
+    }
+  });
+  updateExportFilteredButton();
+}
+
+function updateExportFilteredButton() {
+  // Enable Export Filtered button only when filters are active
+  const hasFilter = filterType !== '' || filterDetail !== '';
+  exportFilteredBtn.disabled = !hasFilter;
+}
+
 function addEvent(e: CustomEventPayload) {
   // If we know the inspected tab id, show only events coming from that tab.
   if (typeof inspectedTabId === 'number' && e.tabId !== inspectedTabId) {
@@ -110,7 +177,9 @@ function addEvent(e: CustomEventPayload) {
   }
 
   events.push(e);
-  renderEvent(e);
+  if (matchesFilter(e)) {
+    renderEvent(e);
+  }
 }
 
 clearBtn.addEventListener('click', () => {
@@ -125,6 +194,29 @@ exportBtn.addEventListener('click', () => {
   a.download = `custom-events-${new Date().toISOString()}.json`;
   a.click();
 });
+
+exportFilteredBtn.addEventListener('click', () => {
+  const filteredEvents = events.filter(e => matchesFilter(e));
+  const a = document.createElement('a');
+  const blob = new Blob([JSON.stringify(filteredEvents, null, 2)], { type: "application/json" });
+  a.href = URL.createObjectURL(blob);
+  a.download = `custom-events-filtered-${new Date().toISOString()}.json`;
+  a.click();
+});
+
+// Filter input listeners
+filterTypeInput.addEventListener('input', () => {
+  filterType = filterTypeInput.value;
+  refreshDisplay();
+});
+
+filterDetailInput.addEventListener('input', () => {
+  filterDetail = filterDetailInput.value;
+  refreshDisplay();
+});
+
+// Initialize button state
+updateExportFilteredButton();
 
 // Listen for messages from background (and other extension parts)
 chrome.runtime.onMessage.addListener((message: any) => {

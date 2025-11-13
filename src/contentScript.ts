@@ -1,5 +1,12 @@
 // Content script: injects the page script and listens for window messages
 
+let captureEnabled = true;
+
+// Load capture state from storage
+chrome.storage.local.get(["captureEnabled"], (result) => {
+  captureEnabled = result.captureEnabled !== false; // default to true
+});
+
 function injectScript() {
   try {
     const script = document.createElement('script');
@@ -21,6 +28,9 @@ window.addEventListener("message", (event) => {
   if (event.source !== window) return;
   const data = event.data;
   if (data && data.__CEC_CUSTOM_EVENT) {
+    // Check if capture is enabled before forwarding
+    if (!captureEnabled) return;
+    
     const payload = data.payload;
     // Forward event to background (background will broadcast to DevTools panel)
     try {
@@ -38,6 +48,11 @@ window.addEventListener("message", (event) => {
 
 // Listen for replay requests from the DevTools panel
 chrome.runtime.onMessage.addListener((message: any, sender, sendResponse) => {
+  if (message?.type === "set_capture_enabled") {
+    captureEnabled = message.enabled;
+    return;
+  }
+  
   if (message?.type === "replay_event") {
     try {
       // Use window.postMessage to communicate with the injected script

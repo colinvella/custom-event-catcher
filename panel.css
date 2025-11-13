@@ -12,6 +12,21 @@ body {
 .toolbar { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
 .spacer { flex:1 }
 .label-muted { font-size:12px; opacity:0.8 }
+.capture-status {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 3px;
+  margin-right: 8px;
+}
+.capture-status.enabled {
+  background: rgba(59, 165, 92, 0.15);
+  color: #3ba55c;
+}
+.capture-status.disabled {
+  background: rgba(220, 38, 38, 0.15);
+  color: #dc2626;
+}
 
 /* Buttons should blend with DevTools UI */
 button {
@@ -23,12 +38,33 @@ button {
   cursor: pointer;
 }
 button:active { transform: translateY(1px); }
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 /* Table container and table styles */
 .table-container { overflow:auto; max-height:calc(100vh - 80px); }
 #eventTable { width:100%; border-collapse:collapse; }
 #eventTable th, #eventTable td { text-align:left; padding:6px 8px; border-bottom:1px solid rgba(128,128,128,0.12); vertical-align:top }
 #eventTable th { font-weight:600 }
+
+/* Filter row styling */
+.filter-row th { padding: 4px 8px; }
+.filter-row input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 6px;
+  font-size: 12px;
+  border: 1px solid rgba(128,128,128,0.2);
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+}
+.filter-row input::placeholder {
+  opacity: 0.5;
+}
 
 .event-row { border-bottom:1px solid rgba(128,128,128,0.06) }
 .cell-detail pre { margin:0; white-space:pre-wrap; font-family: monospace; font-size: 12px; background: transparent; border: none; color: inherit }
@@ -58,4 +94,25 @@ button:active { transform: translateY(1px); }
 }
 .cell-actions button:first-child {
   margin-left: 0;
+}
+.cell-actions .replay-icon {
+  display: inline-block;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.cell-actions .replay-icon:hover {
+  opacity: 1;
+}
+.cell-actions .copy-icon {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.cell-actions .copy-icon:hover {
+  opacity: 1;
 }

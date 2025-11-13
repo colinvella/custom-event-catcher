@@ -17,11 +17,16 @@
           time: Date.now(),
           targetTag: (this && (this as Element).tagName) || null
         };
-        // Log using info level so it appears as a distinct category in Console filters
-        console.info("%cCustom Event%c %s", "color: #3ba55c; font-weight: bold", "", event.type);
-        console.info("  Details:", payload.detail);
-        console.info("  Target:", payload.targetTag || "window");
-        console.info("  Time:", new Date(payload.time).toLocaleString());
+        // Log as a single grouped message so filtering keeps it together
+        console.info(
+          "%cCustom Event%c %s\n  Details: %o\n  Target: %s\n  Time: %s",
+          "color: #3ba55c; font-weight: bold",
+          "",
+          event.type,
+          payload.detail,
+          payload.targetTag || "window",
+          new Date(payload.time).toLocaleString()
+        );
         // Post to content script
         window.postMessage({ __CEC_CUSTOM_EVENT: true, payload }, "*");
       }
