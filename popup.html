@@ -105,6 +105,22 @@
     input:checked + .slider:before {
       transform: translateX(20px);
     }
+    .footer {
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid #e0e0e0;
+      text-align: center;
+      font-size: 11px;
+      color: #666;
+    }
+    .footer a {
+      color: #3ba55c;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -126,6 +142,10 @@
     <div class="step"><strong>1.</strong> Open DevTools <span class="shortcut">F12</span></div>
     <div class="step"><strong>2.</strong> Click the <strong>Custom Events</strong> tab</div>
     <div class="step"><strong>3.</strong> View captured events in the panel</div>
+  </div>
+  
+  <div class="footer">
+    <a href="https://github.com/colinvella/custom-event-catcher" target="_blank">View on GitHub</a>
   </div>
   
   <script type="module" src="popup.js"></script>
