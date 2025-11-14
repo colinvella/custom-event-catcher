@@ -4,7 +4,7 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
   margin: 0;
   padding: 8px;
-  background: transparent;
+  background: var(--background, transparent);
   color: inherit;
 }
 
@@ -62,12 +62,32 @@ button:disabled {
 
 /* Table container and table styles */
 .table-container { overflow:auto; max-height:calc(100vh - 80px); }
-#eventTable { width:100%; border-collapse:collapse; }
+#eventTable { width:100%; min-width: 900px; border-collapse:collapse; table-layout: fixed; }
 #eventTable th, #eventTable td { text-align:left; padding:6px 8px; border-bottom:1px solid rgba(128,128,128,0.12); vertical-align:top }
-#eventTable th { font-weight:600 }
+#eventTable thead {
+  background: Canvas;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+#eventTable thead tr:first-child th { 
+  font-weight:600; 
+  position: sticky; 
+  top: 0; 
+  background: Canvas;
+  z-index: 11;
+  border-bottom: none;
+}
 
 /* Filter row styling */
-.filter-row th { padding: 4px 8px; }
+.filter-row th { 
+  padding: 4px 8px; 
+  position: sticky; 
+  top: 32px; /* Reduced height to eliminate gap */
+  background: Canvas;
+  z-index: 10;
+  border-bottom: none;
+}
 .filter-row input {
   width: 100%;
   box-sizing: border-box;
@@ -127,7 +147,19 @@ button:disabled {
 }
 
 .event-row { border-bottom:1px solid rgba(128,128,128,0.06) }
-.cell-detail pre { margin:0; white-space:pre-wrap; font-family: monospace; font-size: 12px; background: transparent; border: none; color: inherit }
+.cell-detail pre { margin:0; white-space:pre; word-break: normal; font-family: monospace; font-size: 12px; background: transparent; border: none; color: inherit }
+
+/* Scroll container for large payloads */
+.detail-scroll {
+  min-height: 64px;
+  max-height: 280px;
+  overflow: auto; /* enables both horizontal and vertical scrollbars if needed */
+  width: 100%;
+  padding: 6px;
+  border: 1px solid rgba(128,128,128,0.12);
+  border-radius: 3px;
+  background: transparent;
+}
 
 /* Preserve an event-item style (not currently used by table rows) */
 .event-item {
@@ -142,6 +174,7 @@ button:disabled {
 /* Small utility */
 .cell-type { min-width:120px }
 .cell-time { min-width: 90px }
+.cell-detail { min-width: 200px; max-width: 55%; overflow: hidden; }
 .cell-initiator { 
   min-width: 200px;
   max-width: 300px;
@@ -189,3 +222,10 @@ button:disabled {
 .cell-actions .copy-icon:hover {
   opacity: 1;
 }
+
+/* Fixed-layout column widths via header classes */
+.col-time { width: 90px; }
+.col-type { width: 140px; }
+.col-detail { width: 55%; min-width: 200px; }
+.col-initiator { width: 240px; }
+.col-actions { width: 96px; }
