@@ -1,5 +1,5 @@
 // Popup script: displays event count from background and toggles capture state
-import { MessageType } from './types';
+import { MessageType } from "./types";
 
 const captureToggle = document.getElementById("captureToggle") as HTMLInputElement;
 

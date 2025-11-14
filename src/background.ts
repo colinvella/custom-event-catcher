@@ -1,5 +1,5 @@
 // MV3 service worker now uses ESM (see manifest type: module). We can import shared types/constants.
-import { MessageType, CustomEventPayload } from './types';
+import { MessageType, CustomEventPayload } from "./types";
 
 interface Sender {
 	tab?: { id?: number; url?: string };
@@ -22,7 +22,7 @@ let preserveLogByTab: Record<number, boolean> = {};
 // Initialize preserveLogByTab from storage
 chrome.storage.local.get(["preserveLogByTab"], (result) => {
 	const map = result.preserveLogByTab as Record<number, boolean> | undefined;
-	if (map && typeof map === 'object') {
+	if (map && typeof map === "object") {
 		preserveLogByTab = map;
 	}
 });
@@ -66,7 +66,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 	// Track preserveLog per-tab changes
 	if (areaName === "local" && changes.preserveLogByTab) {
 		const map = changes.preserveLogByTab.newValue as Record<number, boolean> | undefined;
-		preserveLogByTab = map && typeof map === 'object' ? map : {};
+		preserveLogByTab = map && typeof map === "object" ? map : {};
 	}
 });
 
@@ -135,7 +135,7 @@ chrome.runtime.onMessage.addListener((message: CustomEventMessage, sender: Sende
 		}
 
 		// Also log centrally in the service worker console
-		console.log('[custom-event-catcher background] event', event.payload);
+		console.log("[custom-event-catcher background] event", event.payload);
 		return;
 	}
 
@@ -182,7 +182,7 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 // Update badge when a tab is updated (e.g., navigation)
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	// When a page starts loading (covers refresh and navigation)
-	if (changeInfo.status === 'loading') {
+	if (changeInfo.status === "loading") {
 		// Clear this tab's events if preserveLog is disabled for this tab
 		if (preserveLogByTab[tabId] !== true) {
 			for (let i = eventBuffer.length - 1; i >= 0; i--) {
@@ -193,7 +193,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 			updateBadge(tabId);
 		}
 	}
-	if (changeInfo.status === 'complete') {
+	if (changeInfo.status === "complete") {
 		updateBadge(tabId);
 	}
 });
