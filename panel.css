@@ -72,6 +72,49 @@ button:disabled {
   opacity: 0.5;
 }
 
+/* Custom combobox styling */
+.combobox-container {
+  position: relative;
+  width: 100%;
+}
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--vscode-dropdown-background, #fff);
+  border: 1px solid rgba(128,128,128,0.3);
+  border-radius: 3px;
+  margin-top: 2px;
+  z-index: 1000;
+  display: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.dropdown-menu.show {
+  display: block;
+}
+.dropdown-item {
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: inherit;
+}
+.dropdown-item:hover,
+.dropdown-item.selected {
+  background: rgba(128,128,128,0.15);
+}
+.dropdown-item.no-results {
+  padding: 8px;
+  text-align: center;
+  opacity: 0.6;
+  cursor: default;
+}
+.dropdown-item.no-results:hover {
+  background: transparent;
+}
+
 .event-row { border-bottom:1px solid rgba(128,128,128,0.06) }
 .cell-detail pre { margin:0; white-space:pre-wrap; font-family: monospace; font-size: 12px; background: transparent; border: none; color: inherit }
 

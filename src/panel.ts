@@ -9,12 +9,15 @@ const clearBtn = document.getElementById('clear') as HTMLButtonElement;
 const exportBtn = document.getElementById('export') as HTMLButtonElement;
 const exportFilteredBtn = document.getElementById('exportFiltered') as HTMLButtonElement;
 const filterTypeInput = document.getElementById('filterType') as HTMLInputElement;
+const typeDropdown = document.getElementById('typeDropdown') as HTMLDivElement;
 const filterDetailInput = document.getElementById('filterDetail') as HTMLInputElement;
 const captureStatus = document.getElementById('captureStatus') as HTMLSpanElement;
+
 
 let events: CustomEventPayload[] = [];
 let filterType = '';
 let filterDetail = '';
+let uniqueEventTypes: Set<string> = new Set();
 
 // Load and display capture status
 function updateCaptureStatus() {
@@ -209,6 +212,61 @@ function matchesFilter(e: CustomEventPayload): boolean {
   return true;
 }
 
+
+function updateEventTypeList() {
+  // Update the dropdown with unique event types
+  uniqueEventTypes = new Set(events.map(e => e.type));
+  renderDropdownItems(Array.from(uniqueEventTypes).sort());
+}
+
+function renderDropdownItems(types: string[]) {
+  if (!typeDropdown) return;
+  
+  typeDropdown.innerHTML = '';
+  
+  if (types.length === 0) {
+    const noResults = document.createElement('div');
+    noResults.className = 'dropdown-item no-results';
+    noResults.textContent = 'No event types';
+    typeDropdown.appendChild(noResults);
+    return;
+  }
+  
+  types.forEach(type => {
+    const item = document.createElement('div');
+    item.className = 'dropdown-item';
+    item.textContent = type;
+    item.addEventListener('click', () => {
+      filterTypeInput.value = type;
+      filterType = type;
+      hideDropdown();
+      refreshDisplay();
+    });
+    typeDropdown.appendChild(item);
+  });
+}
+
+function showDropdown() {
+  if (typeDropdown) {
+    const allTypes = Array.from(uniqueEventTypes).sort();
+    const currentValue = filterTypeInput.value.toLowerCase();
+    
+    // Filter types based on current input
+    const filteredTypes = currentValue 
+      ? allTypes.filter(t => t.toLowerCase().includes(currentValue))
+      : allTypes;
+    
+    renderDropdownItems(filteredTypes);
+    typeDropdown.classList.add('show');
+  }
+}
+
+function hideDropdown() {
+  if (typeDropdown) {
+    typeDropdown.classList.remove('show');
+  }
+}
+
 function refreshDisplay() {
   list.innerHTML = '';
   events.forEach(e => {
@@ -216,6 +274,7 @@ function refreshDisplay() {
       renderEvent(e);
     }
   });
+  updateEventTypeList();
   updateExportFilteredButton();
 }
 
@@ -225,6 +284,7 @@ function updateExportFilteredButton() {
   exportFilteredBtn.disabled = !hasFilter;
 }
 
+
 function addEvent(e: CustomEventPayload) {
   // If we know the inspected tab id, show only events coming from that tab.
   if (typeof inspectedTabId === 'number' && e.tabId !== inspectedTabId) {
@@ -232,13 +292,18 @@ function addEvent(e: CustomEventPayload) {
   }
 
   events.push(e);
+  uniqueEventTypes.add(e.type);
+  updateEventTypeList();
   if (matchesFilter(e)) {
     renderEvent(e);
   }
 }
 
+
 clearBtn.addEventListener('click', () => {
   events = [];
+  uniqueEventTypes.clear();
+  updateEventTypeList();
   list.innerHTML = '';
   // Notify background to clear buffer and reset badge
   chrome.runtime.sendMessage({ type: MessageType.CLEAR_CUSTOM_EVENTS }, () => {
@@ -268,7 +333,24 @@ exportFilteredBtn.addEventListener('click', () => {
 // Filter input listeners
 filterTypeInput.addEventListener('input', () => {
   filterType = filterTypeInput.value;
+  showDropdown(); // Update dropdown to show filtered results
   refreshDisplay();
+});
+
+filterTypeInput.addEventListener('focus', () => {
+  showDropdown();
+});
+
+filterTypeInput.addEventListener('blur', () => {
+  // Delay hiding to allow click on dropdown item
+  setTimeout(() => hideDropdown(), 200);
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  if (!filterTypeInput.contains(e.target as Node) && !typeDropdown.contains(e.target as Node)) {
+    hideDropdown();
+  }
 });
 
 filterDetailInput.addEventListener('input', () => {
@@ -280,9 +362,11 @@ filterDetailInput.addEventListener('input', () => {
 updateExportFilteredButton();
 
 // Listen for messages from background (and other extension parts)
+
 chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any }) => {
   if (message?.type === MessageType.SHOW_EVENT && message.payload) {
     addEvent(message.payload as CustomEventPayload);
+    updateEventTypeList();
   }
 });
 
@@ -299,9 +383,17 @@ try {
   // ignore
 }
 
+
 // Handle backlog message
+
 chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any }) => {
   if (message?.type === MessageType.BACKLOG_RESPONSE && Array.isArray(message.payload)) {
-    (message.payload as CustomEventPayload[]).forEach(e => addEvent(e));
+    events = [];
+    uniqueEventTypes.clear();
+    (message.payload as CustomEventPayload[]).forEach(e => {
+      events.push(e);
+      uniqueEventTypes.add(e.type);
+    });
+    refreshDisplay(); // This will update the dropdown and the table
   }
 });

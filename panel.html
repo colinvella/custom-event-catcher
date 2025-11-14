@@ -1,41 +1,47 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <title>Custom Events</title>
-  <link rel="stylesheet" href="panel.css">
-</head>
-<body>
-  <div class="toolbar">
-    <button id="clear">Clear</button>
-    <button id="export">Export All</button>
-    <button id="exportFiltered">Export Filtered</button>
-    <div class="spacer"></div>
-    <span id="captureStatus" class="capture-status"></span>
-  </div>
+  <head>
+    <meta charset="utf-8" />
+    <title>Custom Events</title>
+    <link rel="stylesheet" href="panel.css">
+  </head>
 
-  <div class="table-container">
-    <table id="eventTable">
-      <thead>
-        <tr>
-          <th class="col-time">Time</th>
-          <th class="col-type">Type</th>
-          <th class="col-detail">Detail</th>
-          <th class="col-initiator">Initiator</th>
-          <th class="col-actions">Actions</th>
-        </tr>
-        <tr class="filter-row">
-          <th class="col-time"></th>
-          <th class="col-type"><input type="text" id="filterType" placeholder="Filter type..." /></th>
-          <th class="col-detail"><input type="text" id="filterDetail" placeholder="Filter detail..." /></th>
-          <th class="col-initiator"></th>
-          <th class="col-actions"></th>
-        </tr>
-      </thead>
-      <tbody id="list"></tbody>
-    </table>
-  </div>
-  
-  <script type="module" src="panel.js"></script>
-</body>
+  <body>
+    <div class="toolbar">
+      <button id="clear">Clear</button>
+      <button id="export">Export All</button>
+      <button id="exportFiltered">Export Filtered</button>
+      <div class="spacer"></div>
+      <span id="captureStatus" class="capture-status"></span>
+    </div>
+
+    <div class="table-container">
+      <table id="eventTable">
+        <thead>
+          <tr>
+            <th class="col-time">Time</th>
+            <th class="col-type">Type</th>
+            <th class="col-detail">Detail</th>
+            <th class="col-initiator">Initiator</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+          <tr class="filter-row">
+            <th class="col-time"></th>
+            <th class="col-type">
+              <div class="combobox-container">
+                <input type="text" id="filterType" placeholder="Filter type..." autocomplete="off" />
+                <div id="typeDropdown" class="dropdown-menu"></div>
+              </div>
+            </th>
+            <th class="col-detail"><input type="text" id="filterDetail" placeholder="Filter detail..." /></th>
+            <th class="col-initiator"></th>
+            <th class="col-actions"></th>
+          </tr>
+        </thead>
+        <tbody id="list"></tbody>
+      </table>
+    </div>
+
+    <script type="module" src="panel.js"></script>
+  </body>
 </html>
