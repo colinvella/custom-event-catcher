@@ -170,9 +170,11 @@ function renderEvent(e: CustomEventPayload) {
   // Time (first column)
   const timeTd = document.createElement('td');
   timeTd.className = 'cell cell-time';
-  // Format date and time using system preferences
+  // Compact time display: HH:mm:ss; full timestamp as tooltip
   const date = new Date(e.time);
-  timeTd.textContent = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  const shortTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  timeTd.textContent = shortTime;
+  timeTd.title = date.toLocaleString();
 
   // Type (second column)
   const typeTd = document.createElement('td');

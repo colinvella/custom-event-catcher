@@ -141,7 +141,7 @@ button:disabled {
 
 /* Small utility */
 .cell-type { min-width:120px }
-.cell-time { min-width:160px }
+.cell-time { min-width: 90px }
 .cell-initiator { 
   min-width: 200px;
   max-width: 300px;
@@ -158,11 +158,11 @@ button:disabled {
 }
 .cell-actions { 
   white-space: nowrap;
-  min-width: 140px;
+  min-width: 96px;
 }
 .cell-actions button {
-  margin: 0 4px;
-  padding: 3px 8px;
+  margin: 0 3px;
+  padding: 2px 6px;
   font-size: 11px;
 }
 .cell-actions button:first-child {
@@ -170,7 +170,7 @@ button:disabled {
 }
 .cell-actions .replay-icon {
   display: inline-block;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.2s;
@@ -180,8 +180,8 @@ button:disabled {
 }
 .cell-actions .copy-icon {
   display: inline-block;
-  margin-left: 8px;
-  font-size: 18px;
+  margin-left: 6px;
+  font-size: 16px;
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.2s;
