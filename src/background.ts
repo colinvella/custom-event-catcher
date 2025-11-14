@@ -16,6 +16,14 @@ interface CustomEventMessage {
 const eventBuffer: CustomEventPayload[] = [];
 const MAX_BUFFER = 500;
 
+// Preserve log preference (global). When false, clear per-tab buffer on navigation/refresh.
+let preserveLog = false;
+
+// Initialize preserveLog from storage
+chrome.storage.local.get(["preserveLog"], (result) => {
+	preserveLog = result.preserveLog === true; // default false
+});
+
 // Function to update extension icon based on capture state
 function updateIcon(isEnabled: boolean) {
 	const iconSuffix = isEnabled ? "" : "-gray";
@@ -50,6 +58,11 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 				}
 			});
 		});
+	}
+
+	// Track preserveLog changes
+	if (areaName === "local" && changes.preserveLog) {
+		preserveLog = changes.preserveLog.newValue === true;
 	}
 });
 
@@ -164,6 +177,18 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 
 // Update badge when a tab is updated (e.g., navigation)
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+	// When a page starts loading (covers refresh and navigation)
+	if (changeInfo.status === 'loading') {
+		// Clear this tab's events if preserveLog is disabled
+		if (!preserveLog) {
+			for (let i = eventBuffer.length - 1; i >= 0; i--) {
+				if (eventBuffer[i].tabId === tabId) {
+					eventBuffer.splice(i, 1);
+				}
+			}
+			updateBadge(tabId);
+		}
+	}
 	if (changeInfo.status === 'complete') {
 		updateBadge(tabId);
 	}

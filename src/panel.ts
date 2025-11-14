@@ -8,6 +8,7 @@ const list = document.getElementById('list') as HTMLTableSectionElement;
 const clearBtn = document.getElementById('clear') as HTMLButtonElement;
 const exportBtn = document.getElementById('export') as HTMLButtonElement;
 const exportFilteredBtn = document.getElementById('exportFiltered') as HTMLButtonElement;
+const preserveLogCheckbox = document.getElementById('preserveLog') as HTMLInputElement;
 const filterTypeInput = document.getElementById('filterType') as HTMLInputElement;
 const typeDropdown = document.getElementById('typeDropdown') as HTMLDivElement;
 const filterDetailInput = document.getElementById('filterDetail') as HTMLInputElement;
@@ -18,6 +19,37 @@ let events: CustomEventPayload[] = [];
 let filterType = '';
 let filterDetail = '';
 let uniqueEventTypes: Set<string> = new Set();
+let preserveLog = false;
+
+// Load preserve log preference from storage
+chrome.storage.local.get(["preserveLog"], (result) => {
+  preserveLog = result.preserveLog === true; // default to false
+  if (preserveLogCheckbox) {
+    preserveLogCheckbox.checked = preserveLog;
+    updatePreserveLogTooltip();
+  }
+});
+
+// Update tooltip based on preserve log state
+function updatePreserveLogTooltip() {
+  if (preserveLogCheckbox) {
+    const label = preserveLogCheckbox.parentElement;
+    if (label) {
+      label.title = preserveLog 
+        ? "Disable to clear logs on page refresh"
+        : "Enable to preserve logs across page refreshes";
+    }
+  }
+}
+
+// Save preserve log preference when toggled
+if (preserveLogCheckbox) {
+  preserveLogCheckbox.addEventListener('change', () => {
+    preserveLog = preserveLogCheckbox.checked;
+    chrome.storage.local.set({ preserveLog });
+    updatePreserveLogTooltip();
+  });
+}
 
 // Load and display capture status
 function updateCaptureStatus() {
@@ -27,9 +59,11 @@ function updateCaptureStatus() {
       if (isEnabled) {
         captureStatus.textContent = "● Capturing";
         captureStatus.className = "capture-status enabled";
+        captureStatus.title = "Click to pause event capture";
       } else {
         captureStatus.textContent = "○ Paused";
         captureStatus.className = "capture-status disabled";
+        captureStatus.title = "Click to resume event capture";
       }
     }
   });
@@ -64,7 +98,6 @@ function toggleCaptureState() {
 // Make status clickable
 if (captureStatus) {
   captureStatus.addEventListener('click', toggleCaptureState);
-  captureStatus.title = "Click to toggle capture state";
 }
 
 // Update status on load
@@ -82,6 +115,26 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 const inspectedTabId: number | undefined = (typeof chrome !== 'undefined' && (chrome as any).devtools && (chrome as any).devtools.inspectedWindow)
   ? (chrome as any).devtools.inspectedWindow.tabId as number
   : undefined;
+
+// Track page navigation to clear events on refresh (unless preserve log is enabled)
+// Use DevTools network navigation event which fires on page load/refresh
+if ((chrome as any).devtools && (chrome as any).devtools.network) {
+  (chrome as any).devtools.network.onNavigated.addListener((url: string) => {
+    // Page navigated - clear events unless preserve log is enabled
+    if (!preserveLog) {
+      events = [];
+      uniqueEventTypes.clear();
+      list.innerHTML = '';
+      updateEventTypeList();
+      // Notify background to clear buffer and reset badge
+      chrome.runtime.sendMessage({ type: MessageType.CLEAR_CUSTOM_EVENTS }, () => {
+        if (chrome.runtime.lastError) {
+          // no-op
+        }
+      });
+    }
+  });
+}
 
 function renderEvent(e: CustomEventPayload) {
   const tr = document.createElement('tr');

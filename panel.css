@@ -12,6 +12,17 @@ body {
 .toolbar { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
 .spacer { flex:1 }
 .label-muted { font-size:12px; opacity:0.8 }
+.preserve-log-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.preserve-log-label input[type="checkbox"] {
+  cursor: pointer;
+}
 .capture-status {
   font-size: 12px;
   font-weight: 500;
