@@ -7,6 +7,12 @@ Chrome extension (TypeScript) that captures CustomEvent dispatches on pages and 
 - **DevTools Panel** - Dedicated panel showing all CustomEvents in real-time with filtering capabilities
 - **Initiator Tracking** - Click links to jump to the exact source code location that dispatched each event (with full source map support)
 - **Event Filtering** - Filter events by Type or Detail with case-insensitive substring matching
+  - Type filter includes dropdown with autocomplete for known event types
+  - Keyboard navigation (arrow keys, Enter, Escape) for quick filtering
+- **Auto-Scroll** - Automatically scrolls to bottom when new events arrive (only when already at bottom)
+- **See Latest Button** - Manually scroll to bottom with smooth animation (disabled when already at bottom)
+- **Preserve Log** - Optional per-tab setting to keep events across page refreshes/navigations
+- **Sticky Table Headers** - Column headers remain visible while scrolling through events
 - **Capture Control** - Toggle switch in popup OR click the status badge in the panel to pause/resume event capturing
 - **Visual Status Indicators**:
   - Extension icon changes to grayscale when capturing is paused
@@ -90,8 +96,23 @@ You should see:
 
 ### Filtering Events
 - Enter text in the **Type** or **Detail** filter boxes at the top of the table
+- Type filter includes dropdown with autocomplete showing all known event types
+- Use arrow keys to navigate dropdown, Enter to select, Escape to clear/close
 - Filtering is case-insensitive and searches for substring matches
+- Filter state is saved per-tab and persists across panel reopens
 - Use **Export Filtered** to download only the events matching your filters
+
+### Auto-Scroll & Navigation
+- When you're scrolled to the bottom, new events automatically scroll into view
+- **See Latest** button appears when not at bottom - click to smoothly scroll to latest events
+- Auto-scroll uses smooth animation and intelligently handles rapid event bursts
+- Button is disabled when already at the bottom
+
+### Preserve Log
+- Enable **Preserve log** checkbox to keep events across page refreshes/navigations
+- Setting is saved per-tab
+- Hover over checkbox for tooltip explaining current state
+- When disabled (default), events are cleared on page navigation
 
 ### Event Actions
 - **Click initiator link** - Opens the source file at the exact line in DevTools
@@ -123,12 +144,12 @@ CustomEvent Catcher does **not** collect, transmit, or persist any personal data
 - No network requests are made on your behalf
 - No analytics, tracking, or fingerprinting
 - No storage of event data beyond the in-memory buffer
-- No data persists after closing the browser (except capture toggle state preference)
+- No data persists after closing the browser (except capture toggle state and per-tab preferences)
 
 **Permissions explanation:**
 - `activeTab` / `tabs`: Scope events per tab and show per-tab badge count
 - `clipboardWrite`: Only used when you click the Copy button to place a dispatch snippet on your clipboard
-- `storage`: Only stores the capture toggle state (enabled/disabled) as a user preference
+- `storage`: Only stores capture toggle state, per-tab preserve log settings, and per-tab filter preferences
 - `<all_urls>`: Required to inject the event capturing script into all pages you visit
 
 If you fork and add remote logging or persistence, update this section and provide a privacy policy URL in the Chrome Web Store listing.
@@ -144,15 +165,18 @@ Capture at 1280×800 (or 640×400) PNG:
    - *Caption:* "Click initiator links to jump directly to source code (supports source maps)"
 
 3. **Filtering Demo** – Show filter inputs filled with text and Export Filtered button enabled
-   - *Caption:* "Filter events by type or detail and export filtered results"
+   - *Caption:* "Filter events by type or detail with autocomplete dropdown and keyboard navigation"
 
-4. **Capture Toggle** – Extension popup showing the toggle switch and event count
+4. **Auto-Scroll & See Latest** – Show the See Latest button and sticky headers while scrolling
+   - *Caption:* "Auto-scroll to latest events with sticky headers and smooth navigation"
+
+5. **Capture Toggle** – Extension popup showing the toggle switch and event count
    - *Caption:* "Pause/resume capturing with visual feedback on icon and badge"
 
-5. **Badge Counter & Icon States** – Browser toolbar showing both enabled (colored icon, red badge) and disabled (grey icon, grey badge) states
+6. **Badge Counter & Icon States** – Browser toolbar showing both enabled (colored icon, red badge) and disabled (grey icon, grey badge) states
    - *Caption:* "Per-tab event counter with visual capture status indicators"
 
-6. **Console Integration** – Page console showing CustomEvent log with initiator link
+7. **Console Integration** – Page console showing CustomEvent log with initiator link
    - *Caption:* "Events logged to console with clickable source locations"
 
 Optional promo tile (440×280):
@@ -165,10 +189,16 @@ Marquee (1400×560, optional):
 
 - **Dedicated DevTools panel** for real-time CustomEvent monitoring
 - **Initiator tracking** with clickable source links (supports source maps)
-- **Live filtering** by event type or detail with substring matching
+- **Live filtering** by event type or detail with autocomplete dropdown
+- **Keyboard navigation** for filters (arrow keys, Enter, Escape)
+- **Auto-scroll to latest** - automatically follows new events when at bottom
+- **See Latest button** - one-click smooth scroll to newest events
+- **Sticky table headers** - column headers stay visible while scrolling
+- **Preserve log** - optional per-tab setting to keep events across page refreshes
 - **Capture control** - pause/resume via popup toggle or panel status click
 - **Clickable status badge** - toggle capture state directly from the DevTools panel
 - **Per-tab badge counter** showing event volume; resets on clear
+- **Per-tab filter state** - filters persist across panel reopens
 - **Replay events** instantly to reproduce behaviors
 - **One-click copy** of ready-to-run dispatch commands
 - **Clear button** - clears panel and resets badge counter
