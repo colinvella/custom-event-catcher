@@ -62,7 +62,7 @@ button:disabled {
 
 /* Table container and table styles */
 .table-container { overflow:auto; max-height:calc(100vh - 80px); }
-#eventTable { width:100%; min-width: 900px; border-collapse:collapse; table-layout: fixed; }
+#eventTable { width:100%; min-width: 900px; border-collapse:separate; border-spacing: 0; table-layout: fixed; }
 #eventTable th, #eventTable td { text-align:left; padding:6px 8px; border-bottom:1px solid rgba(128,128,128,0.12); vertical-align:top }
 #eventTable thead {
   background: Canvas;
@@ -70,6 +70,19 @@ button:disabled {
   top: 0;
   z-index: 10;
 }
+#eventTable thead::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: transparent;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  z-index: 12;
+  pointer-events: none;
+}
+
 #eventTable thead tr:first-child th { 
   font-weight:600; 
   position: sticky; 
@@ -86,7 +99,6 @@ button:disabled {
   top: 32px; /* Reduced height to eliminate gap */
   background: Canvas;
   z-index: 10;
-  border-bottom: none;
 }
 .filter-row input {
   width: 100%;
@@ -129,7 +141,8 @@ button:disabled {
 .dropdown-item {
   padding: 4px 8px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 100%;
+  font-weight: normal;
   color: inherit;
 }
 .dropdown-item:hover,
@@ -151,13 +164,11 @@ button:disabled {
 
 /* Scroll container for large payloads */
 .detail-scroll {
-  min-height: 64px;
+  min-height: 32px; 
   max-height: 280px;
   overflow: auto; /* enables both horizontal and vertical scrollbars if needed */
   width: 100%;
   padding: 6px;
-  border: 1px solid rgba(128,128,128,0.12);
-  border-radius: 3px;
   background: transparent;
 }
 
