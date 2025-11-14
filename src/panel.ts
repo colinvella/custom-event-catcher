@@ -19,16 +19,7 @@ let events: CustomEventPayload[] = [];
 let filterType = '';
 let filterDetail = '';
 let uniqueEventTypes: Set<string> = new Set();
-let preserveLog = false;
-
-// Load preserve log preference from storage
-chrome.storage.local.get(["preserveLog"], (result) => {
-  preserveLog = result.preserveLog === true; // default to false
-  if (preserveLogCheckbox) {
-    preserveLogCheckbox.checked = preserveLog;
-    updatePreserveLogTooltip();
-  }
-});
+let preserveLog = false; // per current tab
 
 // Update tooltip based on preserve log state
 function updatePreserveLogTooltip() {
@@ -42,11 +33,19 @@ function updatePreserveLogTooltip() {
   }
 }
 
-// Save preserve log preference when toggled
+// Save preserve log preference when toggled (per tab)
+function savePreserveLogForTab() {
+  if (typeof inspectedTabId !== 'number') return;
+  chrome.storage.local.get(["preserveLogByTab"], (res) => {
+    const map = (res.preserveLogByTab || {}) as Record<number, boolean>;
+    map[inspectedTabId] = preserveLog;
+    chrome.storage.local.set({ preserveLogByTab: map });
+  });
+}
 if (preserveLogCheckbox) {
   preserveLogCheckbox.addEventListener('change', () => {
     preserveLog = preserveLogCheckbox.checked;
-    chrome.storage.local.set({ preserveLog });
+    savePreserveLogForTab();
     updatePreserveLogTooltip();
   });
 }
@@ -116,6 +115,40 @@ const inspectedTabId: number | undefined = (typeof chrome !== 'undefined' && (ch
   ? (chrome as any).devtools.inspectedWindow.tabId as number
   : undefined;
 
+// Load per-tab preserve log and filters for this tab
+if (typeof inspectedTabId === 'number') {
+  chrome.storage.local.get(["preserveLogByTab", "filtersByTab"], (res) => {
+    const plMap = (res.preserveLogByTab || {}) as Record<number, boolean>;
+    preserveLog = plMap[inspectedTabId] === true;
+    if (preserveLogCheckbox) {
+      preserveLogCheckbox.checked = preserveLog;
+      updatePreserveLogTooltip();
+    }
+
+    const filtersMap = (res.filtersByTab || {}) as Record<number, { type?: string; detail?: string }>;
+    const f = filtersMap[inspectedTabId] || {};
+    if (typeof f.type === 'string') {
+      filterType = f.type;
+      if (filterTypeInput) filterTypeInput.value = filterType;
+    }
+    if (typeof f.detail === 'string') {
+      filterDetail = f.detail;
+      if (filterDetailInput) filterDetailInput.value = filterDetail;
+    }
+    refreshDisplay();
+  });
+}
+
+// Persist filters per tab
+function saveFiltersForTab() {
+  if (typeof inspectedTabId !== 'number') return;
+  chrome.storage.local.get(["filtersByTab"], (res) => {
+    const map = (res.filtersByTab || {}) as Record<number, { type?: string; detail?: string }>;
+    map[inspectedTabId] = { type: filterType, detail: filterDetail };
+    chrome.storage.local.set({ filtersByTab: map });
+  });
+}
+
 // Track page navigation to clear events on refresh (unless preserve log is enabled)
 // Use DevTools network navigation event which fires on page load/refresh
 if ((chrome as any).devtools && (chrome as any).devtools.network) {
@@ -126,12 +159,6 @@ if ((chrome as any).devtools && (chrome as any).devtools.network) {
       uniqueEventTypes.clear();
       list.innerHTML = '';
       updateEventTypeList();
-      // Notify background to clear buffer and reset badge
-      chrome.runtime.sendMessage({ type: MessageType.CLEAR_CUSTOM_EVENTS }, () => {
-        if (chrome.runtime.lastError) {
-          // no-op
-        }
-      });
     }
   });
 }
@@ -384,10 +411,46 @@ exportFilteredBtn.addEventListener('click', () => {
 });
 
 // Filter input listeners
+// Keyboard navigation state for dropdown
+let dropdownIndex: number = -1;
+
 filterTypeInput.addEventListener('input', () => {
   filterType = filterTypeInput.value;
+  dropdownIndex = -1; // reset selection
   showDropdown(); // Update dropdown to show filtered results
   refreshDisplay();
+  saveFiltersForTab();
+});
+
+filterTypeInput.addEventListener('keydown', (e: KeyboardEvent) => {
+  const items = Array.from(typeDropdown.querySelectorAll<HTMLDivElement>('.dropdown-item'));
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!typeDropdown.classList.contains('show')) showDropdown();
+    if (items.length > 0) {
+      dropdownIndex = Math.min(items.length - 1, dropdownIndex + 1);
+      items.forEach((el, idx) => el.classList.toggle('selected', idx === dropdownIndex));
+    }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!typeDropdown.classList.contains('show')) showDropdown();
+    if (items.length > 0) {
+      dropdownIndex = Math.max(0, dropdownIndex - 1);
+      items.forEach((el, idx) => el.classList.toggle('selected', idx === dropdownIndex));
+    }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (dropdownIndex >= 0 && dropdownIndex < items.length) {
+      const value = items[dropdownIndex].textContent || '';
+      filterTypeInput.value = value;
+      filterType = value;
+    }
+    hideDropdown();
+    refreshDisplay();
+    saveFiltersForTab();
+  } else if (e.key === 'Escape') {
+    hideDropdown();
+  }
 });
 
 filterTypeInput.addEventListener('focus', () => {
@@ -409,6 +472,7 @@ document.addEventListener('click', (e) => {
 filterDetailInput.addEventListener('input', () => {
   filterDetail = filterDetailInput.value;
   refreshDisplay();
+  saveFiltersForTab();
 });
 
 // Initialize button state

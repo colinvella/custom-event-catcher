@@ -16,12 +16,15 @@ interface CustomEventMessage {
 const eventBuffer: CustomEventPayload[] = [];
 const MAX_BUFFER = 500;
 
-// Preserve log preference (global). When false, clear per-tab buffer on navigation/refresh.
-let preserveLog = false;
+// Preserve log preference per tab. When not true for a tab, clear that tab's buffer on navigation/refresh.
+let preserveLogByTab: Record<number, boolean> = {};
 
-// Initialize preserveLog from storage
-chrome.storage.local.get(["preserveLog"], (result) => {
-	preserveLog = result.preserveLog === true; // default false
+// Initialize preserveLogByTab from storage
+chrome.storage.local.get(["preserveLogByTab"], (result) => {
+	const map = result.preserveLogByTab as Record<number, boolean> | undefined;
+	if (map && typeof map === 'object') {
+		preserveLogByTab = map;
+	}
 });
 
 // Function to update extension icon based on capture state
@@ -60,9 +63,10 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 		});
 	}
 
-	// Track preserveLog changes
-	if (areaName === "local" && changes.preserveLog) {
-		preserveLog = changes.preserveLog.newValue === true;
+	// Track preserveLog per-tab changes
+	if (areaName === "local" && changes.preserveLogByTab) {
+		const map = changes.preserveLogByTab.newValue as Record<number, boolean> | undefined;
+		preserveLogByTab = map && typeof map === 'object' ? map : {};
 	}
 });
 
@@ -179,8 +183,8 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	// When a page starts loading (covers refresh and navigation)
 	if (changeInfo.status === 'loading') {
-		// Clear this tab's events if preserveLog is disabled
-		if (!preserveLog) {
+		// Clear this tab's events if preserveLog is disabled for this tab
+		if (preserveLogByTab[tabId] !== true) {
 			for (let i = eventBuffer.length - 1; i >= 0; i--) {
 				if (eventBuffer[i].tabId === tabId) {
 					eventBuffer.splice(i, 1);
