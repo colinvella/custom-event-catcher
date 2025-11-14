@@ -8,11 +8,13 @@ const list = document.getElementById("list") as HTMLTableSectionElement;
 const clearBtn = document.getElementById("clear") as HTMLButtonElement;
 const exportBtn = document.getElementById("export") as HTMLButtonElement;
 const exportFilteredBtn = document.getElementById("exportFiltered") as HTMLButtonElement;
+const seeLatestBtn = document.getElementById("seeLatest") as HTMLButtonElement;
 const preserveLogCheckbox = document.getElementById("preserveLog") as HTMLInputElement;
 const filterTypeInput = document.getElementById("filterType") as HTMLInputElement;
 const typeDropdown = document.getElementById("typeDropdown") as HTMLDivElement;
 const filterDetailInput = document.getElementById("filterDetail") as HTMLInputElement;
 const captureStatus = document.getElementById("captureStatus") as HTMLSpanElement;
+const tableContainer = document.querySelector(".table-container") as HTMLDivElement;
 
 
 let events: CustomEventPayload[] = [];
@@ -20,6 +22,7 @@ let filterType = "";
 let filterDetail = "";
 let uniqueEventTypes: Set<string> = new Set();
 let preserveLog = false; // per current tab
+let isAutoScrolling = false; // Track when we're auto-scrolling to bottom
 
 // Update tooltip based on preserve log state
 function updatePreserveLogTooltip() {
@@ -31,6 +34,31 @@ function updatePreserveLogTooltip() {
         : "Enable to preserve logs across page refreshes";
     }
   }
+}
+
+// Check if user is scrolled to the bottom (within 50px threshold)
+function isScrolledToBottom(): boolean {
+  if (!tableContainer) return false;
+  const threshold = 50;
+  return tableContainer.scrollHeight - tableContainer.scrollTop - tableContainer.clientHeight <= threshold;
+}
+
+// Scroll to bottom with smooth animation
+function scrollToBottom() {
+  if (!tableContainer) return;
+  isAutoScrolling = true;
+  tableContainer.scrollTo({
+    top: tableContainer.scrollHeight,
+    behavior: "smooth"
+  });
+  // isAutoScrolling will be cleared by the scrollend event listener
+}
+
+// Update See Latest button state based on scroll position
+function updateSeeLatestButton() {
+  if (!seeLatestBtn) return;
+  const atBottom = isScrolledToBottom();
+  seeLatestBtn.disabled = atBottom;
 }
 
 // Save preserve log preference when toggled (per tab)
@@ -277,7 +305,18 @@ function renderEvent(e: CustomEventPayload) {
   tr.appendChild(initiatorTd);
   tr.appendChild(actionsTd);
 
+  // Check if user was at bottom before adding new row
+  const wasAtBottom = isScrolledToBottom();
+
   list.appendChild(tr);
+
+  // Auto-scroll if user was at bottom or if we're already auto-scrolling
+  if (wasAtBottom || isAutoScrolling) {
+    scrollToBottom();
+  }
+  
+  // Update See Latest button state
+  updateSeeLatestButton();
 }
 
 function matchesFilter(e: CustomEventPayload): boolean {
@@ -413,6 +452,21 @@ exportFilteredBtn.addEventListener("click", () => {
   a.href = URL.createObjectURL(blob);
   a.download = `custom-events-filtered-${new Date().toISOString()}.json`;
   a.click();
+});
+
+// See Latest button - scroll to bottom on click
+seeLatestBtn.addEventListener("click", () => {
+  scrollToBottom();
+});
+
+// Update See Latest button state on scroll
+tableContainer.addEventListener("scroll", () => {
+  updateSeeLatestButton();
+});
+
+// Clear auto-scrolling flag when scroll animation completes
+tableContainer.addEventListener("scrollend", () => {
+  isAutoScrolling = false;
 });
 
 // Filter input listeners
