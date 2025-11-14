@@ -449,7 +449,17 @@ filterTypeInput.addEventListener('keydown', (e: KeyboardEvent) => {
     refreshDisplay();
     saveFiltersForTab();
   } else if (e.key === 'Escape') {
-    hideDropdown();
+    // If there's a value, clear it; otherwise just hide dropdown
+    if (filterTypeInput.value) {
+      filterTypeInput.value = '';
+      filterType = '';
+      dropdownIndex = -1;
+      hideDropdown();
+      refreshDisplay();
+      saveFiltersForTab();
+    } else {
+      hideDropdown();
+    }
   }
 });
 
@@ -473,6 +483,19 @@ filterDetailInput.addEventListener('input', () => {
   filterDetail = filterDetailInput.value;
   refreshDisplay();
   saveFiltersForTab();
+});
+
+// Clear detail filter with Esc when focused
+filterDetailInput.addEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    if (filterDetailInput.value) {
+      e.preventDefault();
+      filterDetailInput.value = '';
+      filterDetail = '';
+      refreshDisplay();
+      saveFiltersForTab();
+    }
+  }
 });
 
 // Initialize button state
