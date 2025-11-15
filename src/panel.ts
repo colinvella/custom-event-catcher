@@ -338,9 +338,9 @@ function matchesFilter(e: CustomEventPayload): boolean {
 
 
 function updateEventTypeList() {
-  // Update the dropdown with unique event types
+  // Update the dropdown with unique event types from ALL events
   uniqueEventTypes = new Set(events.map(e => e.type));
-  renderDropdownItems(Array.from(uniqueEventTypes).sort());
+  // Don't render here - let showDropdown() handle rendering when needed
 }
 
 function renderDropdownItems(types: string[]) {
@@ -365,6 +365,7 @@ function renderDropdownItems(types: string[]) {
       filterType = type;
       hideDropdown();
       refreshDisplay();
+      saveFiltersForTab();
     });
     typeDropdown.appendChild(item);
   });
@@ -373,14 +374,10 @@ function renderDropdownItems(types: string[]) {
 function showDropdown() {
   if (typeDropdown) {
     const allTypes = Array.from(uniqueEventTypes).sort();
-    const currentValue = filterTypeInput.value.toLowerCase();
     
-    // Filter types based on current input
-    const filteredTypes = currentValue 
-      ? allTypes.filter(t => t.toLowerCase().includes(currentValue))
-      : allTypes;
-    
-    renderDropdownItems(filteredTypes);
+    // Always show all types - don't filter based on current input
+    // This allows users to see and select any event type regardless of current filter
+    renderDropdownItems(allTypes);
     typeDropdown.classList.add("show");
   }
 }
