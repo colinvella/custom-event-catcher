@@ -372,12 +372,19 @@ function renderDropdownItems(types: string[]) {
 }
 
 function showDropdown() {
-  if (typeDropdown) {
+  if (typeDropdown && filterTypeInput) {
     const allTypes = Array.from(uniqueEventTypes).sort();
     
     // Always show all types - don't filter based on current input
     // This allows users to see and select any event type regardless of current filter
     renderDropdownItems(allTypes);
+    
+    // Position dropdown below the input using fixed positioning
+    const rect = filterTypeInput.getBoundingClientRect();
+    typeDropdown.style.top = `${rect.bottom + 2}px`;
+    typeDropdown.style.left = `${rect.left}px`;
+    typeDropdown.style.width = `${rect.width}px`;
+    
     typeDropdown.classList.add("show");
   }
 }

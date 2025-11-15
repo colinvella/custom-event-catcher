@@ -79,7 +79,7 @@ button:disabled {
   height: 4px;
   background: transparent;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-  z-index: 12;
+  z-index: 5;
   pointer-events: none;
 }
 
@@ -121,17 +121,14 @@ button:disabled {
   width: 100%;
 }
 .dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  position: fixed; /* Changed from absolute to fixed to avoid clipping */
   max-height: 200px;
   overflow-y: auto;
   background: var(--vscode-dropdown-background, #fff);
   border: 1px solid rgba(128,128,128,0.3);
   border-radius: 3px;
   margin-top: 2px;
-  z-index: 1000;
+  z-index: 10000; /* Increased to ensure it appears above everything */
   display: none;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
