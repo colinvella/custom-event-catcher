@@ -2,6 +2,32 @@
 
 Chrome extension (TypeScript) that captures CustomEvent dispatches on pages and displays them in a dedicated DevTools panel with advanced debugging features.
 
+## Screenshots
+
+### DevTools Panel Overview
+![DevTools Panel Overview](screenshots/dev-tools-panel-overview.png)
+*Live CustomEvent stream with initiator tracking, filtering, replay & copy actions*
+
+### Initiator Link in Action
+![Initiator Link](screenshots/initiator-link-in-action.png)
+*Click initiator links to jump directly to source code (supports source maps)*
+
+### Filtering Demo
+![Filtering Demo](screenshots/filtering-demo.png)
+*Filter events by type or detail with autocomplete dropdown and keyboard navigation*
+
+### Capture Toggle
+![Capture Toggle](screenshots/capture-toggle.png)
+*Pause/resume capturing with visual feedback on icon and badge*
+
+### Badge Counter & Icon States
+![Badge Counter & Icon States](screenshots/badge-counter-and-icon-states.gif)
+*Per-tab event counter with visual capture status indicators*
+
+### Console Integration
+![Console Integration](screenshots/console-integration.png)
+*Events logged to console with clickable source locations*
+
 ## Features
 
 - **DevTools Panel** - Dedicated panel showing all CustomEvents in real-time with filtering capabilities

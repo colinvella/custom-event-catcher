@@ -180,7 +180,11 @@ button:disabled {
 }
 
 /* Small utility */
-.cell-type { min-width:120px }
+.cell-type { 
+  min-width:120px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
 .cell-time { min-width: 90px }
 .cell-detail { min-width: 200px; max-width: 55%; overflow: hidden; }
 .cell-initiator { 
@@ -233,7 +237,7 @@ button:disabled {
 
 /* Fixed-layout column widths via header classes */
 .col-time { width: 90px; }
-.col-type { width: 140px; }
+.col-type { width: 200px; }
 .col-detail { width: 55%; min-width: 200px; }
 .col-initiator { width: 240px; }
 .col-actions { width: 96px; }
