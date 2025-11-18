@@ -62,7 +62,7 @@ button:disabled {
 
 /* Table container and table styles */
 .table-container { overflow:auto; max-height:calc(100vh - 80px); }
-#eventTable { width:100%; min-width: 900px; border-collapse:separate; border-spacing: 0; table-layout: fixed; }
+#eventTable { width:100%; min-width: 1200px; border-collapse:separate; border-spacing: 0; table-layout: fixed; }
 #eventTable th, #eventTable td { text-align:left; padding:6px 8px; border-bottom:1px solid rgba(128,128,128,0.12); vertical-align:top }
 #eventTable thead {
   background: Canvas;
@@ -186,7 +186,17 @@ button:disabled {
   overflow-wrap: break-word;
 }
 .cell-time { min-width: 90px }
-.cell-detail { min-width: 200px; max-width: 55%; overflow: hidden; }
+.cell-detail { min-width: 200px; max-width: 45%; overflow: hidden; }
+.cell-target {
+  min-width: 120px;
+  max-width: 180px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #0550ae;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .cell-initiator { 
   min-width: 200px;
   max-width: 300px;
@@ -238,6 +248,7 @@ button:disabled {
 /* Fixed-layout column widths via header classes */
 .col-time { width: 90px; }
 .col-type { width: 200px; }
-.col-detail { width: 55%; min-width: 200px; }
+.col-detail { width: 45%; min-width: 200px; }
+.col-target { width: 180px; }
 .col-initiator { width: 240px; }
 .col-actions { width: 96px; }

@@ -4,6 +4,7 @@ export interface CustomEventPayload {
     detail: any;
     time: number;
     targetTag: string | null;
+    targetSelector: string | null; // CSS selector or special value like "window" or "document"
     tabId?: number;
     tabUrl?: string;
     initiator?: {

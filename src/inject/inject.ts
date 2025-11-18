@@ -6,6 +6,65 @@
   if ((window as any).__cec_injected) return;
   (window as any).__cec_injected = true;
 
+  /**
+   * Generate a CSS selector for a given event target
+   */
+  function generateSelector(target: EventTarget): string | null {
+    if (target === window) {
+      return "window";
+    } else if (target === document) {
+      return "document";
+    } else if (target && (target as Element).nodeType === Node.ELEMENT_NODE) {
+      const element = target as Element;
+      // Prefer ID if available
+      if (element.id) {
+        return `#${element.id}`;
+      } else {
+        // Build selector with tag, classes, and nth-child
+        let selector = element.tagName.toLowerCase();
+        if (element.className && typeof element.className === 'string') {
+          const classes = element.className.trim().split(/\s+/).filter(c => c);
+          if (classes.length > 0) {
+            selector += '.' + classes.join('.');
+          }
+        }
+        // Add nth-child to make it more specific
+        const parent = element.parentElement;
+        if (parent) {
+          const siblings = Array.from(parent.children);
+          const index = siblings.indexOf(element) + 1;
+          selector += `:nth-child(${index})`;
+        }
+        return selector;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Resolve an event target from a CSS selector
+   */
+  function resolveTarget(selector: string | null): EventTarget {
+    if (!selector) {
+      return window;
+    }
+    
+    if (selector === "window") {
+      return window;
+    } else if (selector === "document") {
+      return document;
+    } else {
+      // Try to find the element using the selector
+      const element = document.querySelector(selector);
+      if (element) {
+        return element;
+      } else {
+        console.warn(`Replay: Could not find element with selector "${selector}", using window instead`);
+        return window;
+      }
+    }
+  }
+
   const originalDispatch = EventTarget.prototype.dispatchEvent;
 
   EventTarget.prototype.dispatchEvent = function (event: Event) {
@@ -31,11 +90,15 @@
           }
         }
         
+        // Generate a selector for the target element
+        const targetSelector = generateSelector(this);
+        
         const payload = {
           type: event.type,
           detail: (event as CustomEvent).detail,
           time: Date.now(),
           targetTag: (this && (this as Element).tagName) || null,
+          targetSelector,
           initiator
         };
         // Log as a single grouped message so filtering keeps it together
@@ -82,7 +145,10 @@
         const customEvent = new CustomEvent(data.payload.type, {
           detail: data.payload.detail
         });
-        window.dispatchEvent(customEvent);
+        
+        // Resolve the target element from the selector
+        const target = resolveTarget(data.payload.targetSelector);
+        target.dispatchEvent(customEvent);
       } catch (err) {
         console.error("Failed to replay event:", err);
       }

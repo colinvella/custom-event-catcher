@@ -219,7 +219,13 @@ function renderEvent(e: CustomEventPayload) {
   scroll.appendChild(pre);
   detailTd.appendChild(scroll);
 
-  // Initiator (fourth column)
+  // Target (fourth column)
+  const targetTd = document.createElement("td");
+  targetTd.className = "cell cell-target";
+  targetTd.textContent = e.targetSelector || "—";
+  targetTd.title = e.targetSelector || "";
+
+  // Initiator (fifth column)
   const initiatorTd = document.createElement("td");
   initiatorTd.className = "cell cell-initiator";
   if (e.initiator) {
@@ -246,7 +252,7 @@ function renderEvent(e: CustomEventPayload) {
     initiatorTd.textContent = "—";
   }
 
-  // Actions (fifth column)
+  // Actions (sixth column)
   const actionsTd = document.createElement("td");
   actionsTd.className = "cell cell-actions";
 
@@ -259,7 +265,7 @@ function renderEvent(e: CustomEventPayload) {
     // Send message to content script to replay the event
     chrome.tabs.sendMessage(inspectedTabId!, {
       type: MessageType.REPLAY_CUSTOM_EVENT,
-      payload: { type: e.type, detail: e.detail }
+      payload: { type: e.type, detail: e.detail, targetSelector: e.targetSelector }
     }, () => {
       if (chrome.runtime.lastError) {
         console.warn("Could not replay event:", chrome.runtime.lastError.message);
@@ -302,6 +308,7 @@ function renderEvent(e: CustomEventPayload) {
   tr.appendChild(timeTd);
   tr.appendChild(typeTd);
   tr.appendChild(detailTd);
+  tr.appendChild(targetTd);
   tr.appendChild(initiatorTd);
   tr.appendChild(actionsTd);
 
