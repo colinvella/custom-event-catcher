@@ -23,7 +23,8 @@ function copy(srcRelative, destRelative) {
 try {
   ensureDir(dist);
   copy('manifest.json', 'dist/manifest.json');
-  copy('devtools.html', 'dist/devtools.html');
+  // DevTools bootstrap HTML moved under src/devtools; copy to root dist
+  copy(path.join('src','devtools','devtools.html'), 'dist/devtools.html');
   copy('panel.html', 'dist/panel.html');
   copy('panel.css', 'dist/panel.css');
   copy('popup.html', 'dist/popup.html');
