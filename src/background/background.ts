@@ -1,5 +1,5 @@
 // MV3 service worker now uses ESM (see manifest type: module). We can import shared types/constants.
-import { MessageType, CustomEventPayload } from "./types";
+import { MessageType, CustomEventPayload } from "../types";
 
 interface Sender {
 	tab?: { id?: number; url?: string };
@@ -32,11 +32,11 @@ function updateIcon(isEnabled: boolean) {
 	const iconSuffix = isEnabled ? "" : "-gray";
 	chrome.action.setIcon({
 		path: {
-			"16": `icons/icon-16${iconSuffix}.png`,
-			"32": `icons/icon-32${iconSuffix}.png`,
-			"48": `icons/icon-48${iconSuffix}.png`,
-			"64": `icons/icon-64${iconSuffix}.png`,
-			"128": `icons/icon-128${iconSuffix}.png`
+			"16": `../icons/icon-16${iconSuffix}.png`,
+			"32": `../icons/icon-32${iconSuffix}.png`,
+			"48": `../icons/icon-48${iconSuffix}.png`,
+			"64": `../icons/icon-64${iconSuffix}.png`,
+			"128": `../icons/icon-128${iconSuffix}.png`
 		}
 	});
 }

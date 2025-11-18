@@ -1,5 +1,5 @@
 // Panel script: runs inside the DevTools panel (panel.html). Listens for messages from the background.
-import { MessageType, CustomEventPayload as SharedCustomEventPayload } from "./types";
+import { MessageType, CustomEventPayload as SharedCustomEventPayload } from "../types";
 
 // Mirror payload type locally (imported for consistency)
 type CustomEventPayload = SharedCustomEventPayload;

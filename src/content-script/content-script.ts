@@ -2,7 +2,7 @@
 // Bundling approach: Authored as an ES module; esbuild bundles `src/content-script.ts` into
 // a single classic script (`dist/content-script.js`) because MV3 content scripts cannot be modules.
 // This preserves a single source of truth for shared constants/types while keeping runtime compatibility.
-import { MessageType } from "./types";
+import { MessageType } from "../types";
 
 let captureEnabled = true;
 
@@ -14,7 +14,7 @@ chrome.storage.local.get(["captureEnabled"], (result) => {
 function injectScript() {
   try {
     const script = document.createElement("script");
-    script.src = chrome.runtime.getURL("inject.js");
+    script.src = chrome.runtime.getURL("inject/inject.js");
     script.type = "text/javascript";
     script.async = false;
     (document.head || document.documentElement).prepend(script);

@@ -7,8 +7,8 @@
     "prebuild": "node ./scripts/clean.js",
     "build": "tsc -p tsconfig.json && npm run bundle:all && node ./scripts/copy-assets.js",
     "watch": "tsc -p tsconfig.json -w",
-  "bundle:esm": "esbuild src/background.ts src/panel.ts src/popup.ts src/devtools/devtools.ts --bundle --format=esm --platform=browser --target=es2020 --outdir=dist --sourcemap",
-    "bundle:iife": "esbuild src/content-script.ts src/inject.ts --bundle --format=iife --platform=browser --target=es2020 --outdir=dist --sourcemap",
+  "bundle:esm": "esbuild src/background/background.ts src/panel/panel.ts src/popup/popup.ts src/devtools/devtools.ts --bundle --format=esm --platform=browser --target=es2020 --outdir=dist --sourcemap",
+    "bundle:iife": "esbuild src/content-script/content-script.ts src/inject/inject.ts --bundle --format=iife --platform=browser --target=es2020 --outdir=dist --sourcemap",
     "bundle:all": "npm run bundle:esm && npm run bundle:iife",
     "zip": "node ./scripts/zip.js",
     "package": "npm run build && npm run zip"

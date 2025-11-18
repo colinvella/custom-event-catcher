@@ -36,7 +36,7 @@
           detail: (event as CustomEvent).detail,
           time: Date.now(),
           targetTag: (this && (this as Element).tagName) || null,
-          initiator: initiator
+          initiator
         };
         // Log as a single grouped message so filtering keeps it together
         // Include initiator link if available

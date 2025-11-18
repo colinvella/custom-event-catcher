@@ -23,11 +23,13 @@ function copy(srcRelative, destRelative) {
 try {
   ensureDir(dist);
   copy('manifest.json', 'dist/manifest.json');
-  // DevTools bootstrap HTML moved under src/devtools; copy to root dist
-  copy(path.join('src','devtools','devtools.html'), 'dist/devtools.html');
-  copy('panel.html', 'dist/panel.html');
-  copy('panel.css', 'dist/panel.css');
-  copy('popup.html', 'dist/popup.html');
+  // DevTools bootstrap HTML moved under src/devtools; copy into dist/devtools/
+  copy(path.join('src','devtools','devtools.html'), path.join('dist','devtools','devtools.html'));
+  // Panel assets relocated under src/panel; copy into dist/panel/
+  copy(path.join('src','panel','panel.html'), path.join('dist','panel','panel.html'));
+  copy(path.join('src','panel','panel.css'), path.join('dist','panel','panel.css'));
+  // Popup assets relocated under src/popup; copy into dist/popup/
+  copy(path.join('src','popup','popup.html'), path.join('dist','popup','popup.html'));
   // inject.js now produced by esbuild; no copy needed, but keep placeholder comment.
   
   // Copy icons directory
