@@ -222,8 +222,68 @@ function renderEvent(e: CustomEventPayload) {
   // Target (fourth column)
   const targetTd = document.createElement("td");
   targetTd.className = "cell cell-target";
-  targetTd.textContent = e.targetSelector || "—";
-  targetTd.title = e.targetSelector || "";
+  
+  if (e.targetSelector && e.targetSelector !== "window" && e.targetSelector !== "document") {
+    // Make it clickable to inspect the element
+    const link = document.createElement("a");
+    link.textContent = e.targetSelector;
+    link.title = `Click to inspect element: ${e.targetSelector}`;
+    link.href = "#";
+    link.addEventListener("click", (evt) => {
+      evt.preventDefault();
+      // Use DevTools inspectedWindow.eval to execute code with access to Console Command Line API
+      if ((chrome as any).devtools && (chrome as any).devtools.inspectedWindow) {
+        // Escape the selector for safe embedding in the eval code
+        const escapedSelector = JSON.stringify(e.targetSelector);
+        const code = `
+          (function() {
+            // Import resolveTarget logic inline since we can't import modules in eval
+            function resolveTarget(selector) {
+              if (selector === "window") return window;
+              if (selector === "document") return document;
+              
+              const parts = selector.split(':shadow-root');
+              if (parts.length === 1) {
+                return document.querySelector(selector) || window;
+              }
+              
+              let context = document;
+              for (let i = 0; i < parts.length; i++) {
+                const part = parts[i].trim();
+                if (!part) continue;
+                
+                if (i === parts.length - 1) {
+                  return context.querySelector(part) || window;
+                }
+                
+                const host = context.querySelector(part);
+                if (!host || !host.shadowRoot) {
+                  return window;
+                }
+                context = host.shadowRoot;
+              }
+              return window;
+            }
+            
+            const element = resolveTarget(${escapedSelector});
+            if (element && element !== window && element !== document) {
+              inspect(element);
+            }
+          })();
+        `;
+        
+        (chrome as any).devtools.inspectedWindow.eval(code, (result: any, exceptionInfo: any) => {
+          if (exceptionInfo) {
+            console.warn("Could not inspect element:", exceptionInfo);
+          }
+        });
+      }
+    });
+    targetTd.appendChild(link);
+  } else {
+    targetTd.textContent = e.targetSelector || "—";
+    targetTd.title = e.targetSelector || "";
+  }
 
   // Initiator (fifth column)
   const initiatorTd = document.createElement("td");
