@@ -2,68 +2,11 @@
 // to intercept CustomEvent instances and relay them via window.postMessage. It also logs to
 // the page console so you can see events in the page's DevTools Console.
 
+import { generateSelector, resolveTarget } from "../selector/selector";
+
 (function () {
   if ((window as any).__cec_injected) return;
   (window as any).__cec_injected = true;
-
-  /**
-   * Generate a CSS selector for a given event target
-   */
-  function generateSelector(target: EventTarget): string | null {
-    if (target === window) {
-      return "window";
-    } else if (target === document) {
-      return "document";
-    } else if (target && (target as Element).nodeType === Node.ELEMENT_NODE) {
-      const element = target as Element;
-      // Prefer ID if available
-      if (element.id) {
-        return `#${element.id}`;
-      } else {
-        // Build selector with tag, classes, and nth-child
-        let selector = element.tagName.toLowerCase();
-        if (element.className && typeof element.className === 'string') {
-          const classes = element.className.trim().split(/\s+/).filter(c => c);
-          if (classes.length > 0) {
-            selector += '.' + classes.join('.');
-          }
-        }
-        // Add nth-child to make it more specific
-        const parent = element.parentElement;
-        if (parent) {
-          const siblings = Array.from(parent.children);
-          const index = siblings.indexOf(element) + 1;
-          selector += `:nth-child(${index})`;
-        }
-        return selector;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Resolve an event target from a CSS selector
-   */
-  function resolveTarget(selector: string | null): EventTarget {
-    if (!selector) {
-      return window;
-    }
-    
-    if (selector === "window") {
-      return window;
-    } else if (selector === "document") {
-      return document;
-    } else {
-      // Try to find the element using the selector
-      const element = document.querySelector(selector);
-      if (element) {
-        return element;
-      } else {
-        console.warn(`Replay: Could not find element with selector "${selector}", using window instead`);
-        return window;
-      }
-    }
-  }
 
   const originalDispatch = EventTarget.prototype.dispatchEvent;
 
