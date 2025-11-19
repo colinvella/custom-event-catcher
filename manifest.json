@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CustomEvent Catcher",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Captures CustomEvent dispatches on pages and logs details.",
   "short_name": "CEC",
   "homepage_url": "https://github.com/colinvella/custom-event-catcher",
