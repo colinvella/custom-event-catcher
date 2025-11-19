@@ -1,8 +1,13 @@
 // Panel script: runs inside the DevTools panel (panel.html). Listens for messages from the background.
 import { MessageType, CustomEventPayload as SharedCustomEventPayload } from "../types";
+import { resolveTarget as resolveTargetFn } from "../selector/selector";
 
 // Mirror payload type locally (imported for consistency)
 type CustomEventPayload = SharedCustomEventPayload;
+
+// Serialize the resolveTarget function for use in inspectedWindow.eval
+// We need to convert it to a string since we can't import modules in eval context
+const resolveTargetSerialized = resolveTargetFn.toString();
 
 const list = document.getElementById("list") as HTMLTableSectionElement;
 const clearBtn = document.getElementById("clear") as HTMLButtonElement;
@@ -235,35 +240,10 @@ function renderEvent(e: CustomEventPayload) {
       if ((chrome as any).devtools && (chrome as any).devtools.inspectedWindow) {
         // Escape the selector for safe embedding in the eval code
         const escapedSelector = JSON.stringify(e.targetSelector);
+        // Use the serialized resolveTarget function from selector.ts
         const code = `
           (function() {
-            // Import resolveTarget logic inline since we can't import modules in eval
-            function resolveTarget(selector) {
-              if (selector === "window") return window;
-              if (selector === "document") return document;
-              
-              const parts = selector.split(':shadow-root');
-              if (parts.length === 1) {
-                return document.querySelector(selector) || window;
-              }
-              
-              let context = document;
-              for (let i = 0; i < parts.length; i++) {
-                const part = parts[i].trim();
-                if (!part) continue;
-                
-                if (i === parts.length - 1) {
-                  return context.querySelector(part) || window;
-                }
-                
-                const host = context.querySelector(part);
-                if (!host || !host.shadowRoot) {
-                  return window;
-                }
-                context = host.shadowRoot;
-              }
-              return window;
-            }
+            const resolveTarget = ${resolveTargetSerialized};
             
             const element = resolveTarget(${escapedSelector});
             if (element && element !== window && element !== document) {

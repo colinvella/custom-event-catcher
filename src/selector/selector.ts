@@ -155,7 +155,7 @@ export function resolveTarget(selector: string | null): EventTarget {
             // No more shadow roots - query remaining selector in current root
             element = currentRoot.querySelector(remaining.trim());
             if (!element) {
-              console.warn(`Replay: Could not find element with selector "${remaining.trim()}" in current context`);
+              console.warn(`Could not find element with selector "${remaining.trim()}" in current context`);
               return window;
             }
             break;
@@ -179,13 +179,13 @@ export function resolveTarget(selector: string | null): EventTarget {
           if (ancestorsSelector) {
             const ancestor: Element | null = currentRoot.querySelector(ancestorsSelector);
             if (!ancestor) {
-              console.warn(`Replay: Could not find ancestor with selector "${ancestorsSelector}"`);
+              console.warn(`Could not find ancestor with selector "${ancestorsSelector}"`);
               return window;
             }
             // Continue from this element's context, but we need the host as a child
             const hostInContext: Element | null = ancestor.querySelector(hostSelector);
             if (!hostInContext) {
-              console.warn(`Replay: Could not find host "${hostSelector}" within ancestor`);
+              console.warn(`Could not find host "${hostSelector}" within ancestor`);
               return window;
             }
             element = hostInContext;
@@ -193,14 +193,14 @@ export function resolveTarget(selector: string | null): EventTarget {
             // No ancestors, just find the host in current root
             element = currentRoot.querySelector(hostSelector);
             if (!element) {
-              console.warn(`Replay: Could not find shadow host with selector "${hostSelector}"`);
+              console.warn(`Could not find shadow host with selector "${hostSelector}"`);
               return window;
             }
           }
           
           // Enter the shadow root
           if (!element || !element.shadowRoot) {
-            console.warn(`Replay: Element "${hostSelector}" does not have a shadow root`);
+            console.warn(`Element "${hostSelector}" does not have a shadow root`);
             return window;
           }
           currentRoot = element.shadowRoot;
@@ -216,12 +216,12 @@ export function resolveTarget(selector: string | null): EventTarget {
         if (element) {
           return element;
         } else {
-          console.warn(`Replay: Could not find element with selector "${selector}", using window instead`);
+          console.warn(`Could not find element with selector "${selector}", using window instead`);
           return window;
         }
       }
     } catch (err) {
-      console.error(`Replay: Error resolving selector "${selector}":`, err);
+      console.error(`Error resolving selector "${selector}":`, err);
       return window;
     }
   }
