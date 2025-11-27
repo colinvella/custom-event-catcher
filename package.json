@@ -1,6 +1,6 @@
 {
   "name": "custom-event-catcher",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Chrome extension to capture CustomEvent dispatches and log them",
   "author": "Colin Vella",
   "scripts": {
