@@ -8,11 +8,13 @@ import { generateSelector, resolveTarget } from "../selector/selector";
   if ((window as any).__cec_injected) return;
   (window as any).__cec_injected = true;
 
+  let captureEnabled = true;
+
   const originalDispatch = EventTarget.prototype.dispatchEvent;
 
   EventTarget.prototype.dispatchEvent = function (event: Event) {
     try {
-      if (typeof CustomEvent !== "undefined" && event instanceof CustomEvent) {
+      if (typeof CustomEvent !== "undefined" && event instanceof CustomEvent && captureEnabled) {
         // Capture stack trace to get the initiator
         const stack = new Error().stack || "";
         const stackLines = stack.split("\n");
@@ -79,10 +81,16 @@ import { generateSelector, resolveTarget } from "../selector/selector";
     return originalDispatch.call(this, event);
   };
 
-  // Listen for replay requests from the content script
+  // Listen for replay and capture toggle requests from the content script
   window.addEventListener("message", (event) => {
     if (event.source !== window) return;
     const data = event.data;
+    
+    if (data && data.__CEC_CAPTURE_TOGGLE !== undefined) {
+      captureEnabled = data.__CEC_CAPTURE_TOGGLE;
+      return;
+    }
+    
     if (data && data.__CEC_REPLAY_EVENT) {
       try {
         const customEvent = new CustomEvent(data.payload.type, {

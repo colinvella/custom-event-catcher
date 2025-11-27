@@ -9,6 +9,12 @@ let captureEnabled = true;
 // Load capture state from storage
 chrome.storage.local.get(["captureEnabled"], (result) => {
   captureEnabled = result.captureEnabled !== false; // default to true
+  // Send initial state to inject script
+  try {
+    window.postMessage({ __CEC_CAPTURE_TOGGLE: captureEnabled }, "*");
+  } catch (err) {
+    // Inject script may not be ready yet, that's ok
+  }
 });
 
 function injectScript() {
@@ -52,6 +58,12 @@ window.addEventListener("message", (event) => {
 chrome.runtime.onMessage.addListener((message: { type: MessageType; payload?: any; enabled?: boolean }, sender, sendResponse) => {
   if (message?.type === MessageType.CAPTURE_TOGGLE) {
     captureEnabled = message.enabled !== false; // default to true when undefined
+    // Forward to inject script to control console logging
+    try {
+      window.postMessage({ __CEC_CAPTURE_TOGGLE: captureEnabled }, "*");
+    } catch (err) {
+      console.error("Failed to forward capture toggle to inject script:", err);
+    }
     return;
   }
 
