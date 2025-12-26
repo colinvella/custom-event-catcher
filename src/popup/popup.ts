@@ -64,3 +64,7 @@ chrome.runtime.sendMessage({ type: MessageType.COUNT_REQUEST }, (response) => {
     }
   }
 });
+
+// show version from manifest
+const version = chrome.runtime.getManifest().version;
+document.querySelector("#version")!.textContent = version;
