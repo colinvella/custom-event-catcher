@@ -30,6 +30,7 @@ try {
   copy(path.join('src','panel','panel.css'), path.join('dist','panel','panel.css'));
   // Popup assets relocated under src/popup; copy into dist/popup/
   copy(path.join('src','popup','popup.html'), path.join('dist','popup','popup.html'));
+  copy(path.join('src','popup','popup.css'), path.join('dist','popup','popup.css'));
   // inject.js now produced by esbuild; no copy needed, but keep placeholder comment.
   
   // Copy icons directory
